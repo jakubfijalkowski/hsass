@@ -1,0 +1,14 @@
+{
+  "folders": [
+    {
+      "path": ".",
+      "folder_exclude_patterns": [
+        "dist",
+        ".cabal-sandbox"
+      ],
+      "file_exclude_patterns": [
+        "cabal.sandbox.config"
+      ]
+    }
+  ]
+}
