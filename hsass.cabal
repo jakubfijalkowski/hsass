@@ -14,6 +14,13 @@ cabal-version:       >=1.10
 executable hsass
   main-is:             Main.hs
   other-modules:
-    Text.Sass
-  build-depends:       base >=4.7 && <4.8, hlibsass >= 0.1
+    Text.Sass,
+    Text.Sass.Types,
+    Text.Sass.Internal
+  build-depends:
+    base >=4.7 && <4.8,
+    hlibsass >= 0.1,
+    data-default-class,
+    filepath >= 1.0
   default-language:    Haskell2010
+  ghc-options:         -pgml g++

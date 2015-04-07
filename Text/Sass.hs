@@ -1,1 +1,6 @@
-module Text.Sass where
+module Text.Sass
+  (
+    module Sass
+  ) where
+
+import qualified Text.Sass.Types as Sass
