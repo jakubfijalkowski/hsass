@@ -5,21 +5,10 @@ module Text.Sass.Internal
 
 import qualified Binding.Libsass     as Lib
 import           Control.Applicative ((<$>))
-import           Data.List           (intercalate)
 import           Foreign
 import           Foreign.C
-import           System.FilePath     (searchPathSeparator)
+import           Text.Sass.Utils
 import           Text.Sass.Types
-
--- | Concatenates list of paths, separating entries with appropriate character.
-concatPaths :: [FilePath] -> FilePath
-concatPaths = intercalate [searchPathSeparator]
-
--- | 'withOptionalCString str action', if str is Nothing, then 'nullPtr' is passed
---   to the 'action', otherwise behaves like 'withCString'.
-withOptionalCString :: Maybe String -> (CString -> IO ()) -> IO ()
-withOptionalCString (Just str) action = withCString str action
-withOptionalCString Nothing action = action nullPtr
 
 -- | Copies 'SassOptions' to native 'Lib.SassOptions'.
 copyToOptions :: SassOptions -> Ptr Lib.SassOptions -> IO ()
