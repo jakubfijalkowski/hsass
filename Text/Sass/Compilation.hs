@@ -13,12 +13,11 @@ module Text.Sass.Compilation
   ) where
 
 import qualified Binding.Libsass    as Lib
-import           Foreign.C.String
-import           Foreign.Ptr
-import           Foreign.ForeignPtr
+import           Control.Monad      ((>=>))
+import           Foreign
+import           Foreign.C
 import           Text.Sass.Internal (copyToOptions)
 import           Text.Sass.Types    (SassOptions)
-import           Text.Sass.Utils    (loadIntFromContext, loadStringFromContext)
 
 -- | Represents compilation error.
 data SassError = SassError {
@@ -26,36 +25,54 @@ data SassError = SassError {
     errorContext :: ForeignPtr Lib.SassContext
 }
 
+-- | Loads specified property from context and converts it to desired type.
+loadFromError :: (Ptr Lib.SassContext -> IO a) -- ^ Accessor function.
+              -> (a -> IO b) -- ^ Conversion method.
+              -> SassError -- ^ Pointer to context.
+              -> IO b -- ^ Result.
+loadFromError get conv err = withForeignPtr ptr $ get >=> conv
+    where ptr = errorContext err
+
+-- | Equivalent to @'loadFromError' 'get' 'peekCString' 'err'@.
+loadStringFromError :: (Ptr Lib.SassContext -> IO CString) -- ^ Accessor function.
+                    -> SassError -- ^ Pointer to context.
+                    -> IO String -- ^ Result.
+loadStringFromError get = loadFromError get peekCString
+
+-- | Equivalent to @'loadFromError' 'get' 'fromInteger' 'err'@.
+loadIntFromError :: (Integral a)
+                 => (Ptr Lib.SassContext -> IO a) -- ^ Accessor function.
+                 -> SassError -- ^ Pointer to context.
+                 -> IO Int -- ^ Result.
+loadIntFromError get = loadFromError get (return.fromIntegral)
+
 -- | Loads information about error as JSON.
-errorJson :: SassError -> String
-errorJson = loadStringFromContext Lib.sass_context_get_error_json . errorContext
+errorJson :: SassError -> IO String
+errorJson = loadStringFromError Lib.sass_context_get_error_json
 
 -- | Loads error text.
-errorText :: SassError -> String
-errorText = loadStringFromContext Lib.sass_context_get_error_text . errorContext
+errorText :: SassError -> IO String
+errorText = loadStringFromError Lib.sass_context_get_error_text
 
 -- | Loads user-friendly error message.
-errorMessage :: SassError -> String
-errorMessage = loadStringFromContext Lib.sass_context_get_error_message
-    . errorContext
+errorMessage :: SassError -> IO String
+errorMessage = loadStringFromError Lib.sass_context_get_error_message
 
 -- | Loads file where problem occured.
-errorFile :: SassError -> String
-errorFile = loadStringFromContext Lib.sass_context_get_error_file . errorContext
+errorFile :: SassError -> IO String
+errorFile = loadStringFromError Lib.sass_context_get_error_file
 
 -- | Loads error source.
-errorSource :: SassError -> String
-errorSource = loadStringFromContext Lib.sass_context_get_error_src
-    . errorContext
+errorSource :: SassError -> IO String
+errorSource = loadStringFromError Lib.sass_context_get_error_src
 
 -- | Loads line in the file where problem occured.
-errorLine :: SassError -> Int
-errorLine = loadIntFromContext Lib.sass_context_get_error_line . errorContext
+errorLine :: SassError -> IO Int
+errorLine = loadIntFromError Lib.sass_context_get_error_line
 
 -- | Loads line in the file where problem occured.
-errorColumn :: SassError -> Int
-errorColumn = loadIntFromContext Lib.sass_context_get_error_column
-    . errorContext
+errorColumn :: SassError -> IO Int
+errorColumn = loadIntFromError Lib.sass_context_get_error_column
 
 -- | Compiles file using specified options.
 compileFile :: FilePath -- ^ Path to the file.

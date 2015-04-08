@@ -5,8 +5,6 @@ module Text.Sass.Types
 
 import qualified Binding.Libsass    as Lib
 import           Data.Default.Class
-import           Foreign.Ptr        (Ptr)
-import           Text.Sass.Utils    (loadIntFromContext, loadStringFromContext)
 
 -- | Describes options used by libsass during compilation.
 data SassOptions = SassOptions {

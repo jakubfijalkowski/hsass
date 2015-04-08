@@ -1,11 +1,8 @@
 module Text.Sass.Utils where
 
-import qualified Binding.Libsass  as Lib
 import           Data.List        (intercalate)
-import           Foreign
 import           Foreign.C
 import           System.FilePath  (searchPathSeparator)
-import           System.IO.Unsafe (unsafePerformIO)
 
 -- | Concatenates list of paths, separating entries with appropriate character.
 concatPaths :: [FilePath] -> FilePath
@@ -16,24 +13,3 @@ concatPaths = intercalate [searchPathSeparator]
 withOptionalCString :: Maybe String -> (CString -> IO ()) -> IO ()
 withOptionalCString (Just str) action = withCString str action
 withOptionalCString Nothing _ = return ()
-
--- | 'unsafePeekString' is equivalent to
---   @'unsafePerformIO' . 'peekCString' . 'unsafePerformIO'@.
-unsafePeekString :: IO CString -> String
-unsafePeekString = unsafePerformIO . peekCString . unsafePerformIO
-
--- | 'unsafeToInt' is equivalent to @'fromIntegral' . 'unsafePerformIO'@.
-unsafeToInt :: IO CSize -> Int
-unsafeToInt = fromIntegral . unsafePerformIO
-
--- | Loads specified property from context.
-loadStringFromContext :: (Ptr Lib.SassContext -> IO CString) -- ^ Accessor.
-                      -> ForeignPtr Lib.SassContext -- ^ Context.
-                      -> String -- ^ Value.
-loadStringFromContext action ptr = unsafePeekString $ withForeignPtr ptr action
-
--- | Loads specified property from context.
-loadIntFromContext :: (Ptr Lib.SassContext -> IO CSize) -- ^ Accessor.
-                   -> ForeignPtr Lib.SassContext -- ^ Context.
-                   -> Int -- ^ Value.
-loadIntFromContext action ptr = unsafeToInt $ withForeignPtr ptr action
