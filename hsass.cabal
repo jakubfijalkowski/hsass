@@ -21,6 +21,8 @@ executable hsass
     base >=4.7 && <4.8,
     hlibsass >= 0.1,
     data-default-class,
-    filepath >= 1.0
+    filepath >= 1.0,
+    mtl >= 2.0,
+    containers >= 0.5
   default-language:    Haskell2010
   ghc-options:         -pgml g++
