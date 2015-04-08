@@ -4,6 +4,8 @@ module Text.Sass.Values
   , SassValue (..)
   , toNativeValue
   , fromNativeValue
+  , deleteNativeValue
+  , makeValueForeignPtr
   , Lib.SassSeparator (..)
   ) where
 
@@ -37,6 +39,8 @@ data SassValue = SassBool Bool -- ^ Boolean value.
                 deriving (Eq)
 
 -- | Converts a 'SassValue' to native type.
+--
+--   This is (mostly) internal function.
 toNativeValue :: SassValue -> IO (Ptr Lib.SassValue)
 toNativeValue (SassBool val) = Lib.sass_make_boolean val
 toNativeValue (SassNumber val unit) = withCString unit $
@@ -73,6 +77,8 @@ toNativeValue (SassMap lst) = do
     return result
 
 -- | Converts native value to 'SassValue'.
+--
+--   This is (mostly) internal function.
 fromNativeValue :: Ptr Lib.SassValue -> IO SassValue
 fromNativeValue ptr = do
     tag <- Lib.sass_value_get_tag ptr
@@ -113,3 +119,15 @@ fromNativeValue' Lib.SassMap ptr = do
         val <- liftIO $ Lib.sass_map_get_value ptr idx >>= fromNativeValue
         tell $ singleton (key, val)
     return $ SassMap (toList result)
+
+-- | Frees native representation of 'SassValue'.
+--
+--   This is (mostly) internal function.
+deleteNativeValue :: Ptr Lib.SassValue -> IO ()
+deleteNativeValue = Lib.sass_delete_value
+
+-- | Makes 'ForeignPtr' from 'Ptr' to native representation of 'SassValue'.
+--
+--   This is (mostly) internal function.
+makeValueForeignPtr :: Ptr Lib.SassValue -> IO (ForeignPtr Lib.SassValue)
+makeValueForeignPtr = newForeignPtr Lib.p_sass_delete_value
