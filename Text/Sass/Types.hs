@@ -1,6 +1,7 @@
 module Text.Sass.Types
   (
-    SassOptions(..)
+    SassOptions(..),
+    Lib.SassOutputStyle(..)
   ) where
 
 import qualified Binding.Libsass    as Lib

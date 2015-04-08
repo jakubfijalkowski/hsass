@@ -10,6 +10,7 @@ module Text.Sass.Compilation
   , errorLine
   , errorColumn
   , compileFile
+  , compileString
   ) where
 
 import qualified Binding.Libsass    as Lib
@@ -74,26 +75,53 @@ errorLine = loadIntFromError Lib.sass_context_get_error_line
 errorColumn :: SassError -> IO Int
 errorColumn = loadIntFromError Lib.sass_context_get_error_column
 
+-- | Common code for 'compileFile' and 'compileString'.
+compileInternal :: CString -- ^ String that will be passed to 'make context'.
+                -> SassOptions
+                -> (CString -> IO (Ptr a)) -- ^ Make context.
+                -> (Ptr a -> IO CInt) -- ^ Compile context.
+                -> (Ptr a -> IO ()) -- ^ Delete context.
+                -> FinalizerPtr a -- ^ Context finalizer.
+                -> IO (Either SassError String)
+compileInternal str opts make compile delete finalizer = do
+    -- Makes an assumption, that Sass_*_Context inherits from Sass_Context
+    -- and Sass_Options.
+    context <- make str
+    let context' = castPtr context
+    let opts' = castPtr context
+    copyToOptions opts opts'
+    status <- compile context
+    if status /= 0
+        then do
+            fptr <- newForeignPtr finalizer context
+            return $ Left $
+                SassError (fromIntegral status) (castForeignPtr fptr)
+        else do
+            result <- Lib.sass_context_get_output_string context'
+            !result' <- peekCString result
+            delete context
+            return $ Right result'
+
+
 -- | Compiles file using specified options.
 compileFile :: FilePath -- ^ Path to the file.
             -> SassOptions -- ^ Compilation options.
             -> IO (Either SassError String) -- ^ Error or output string.
-compileFile path opts = withCString path $ \cpath -> do
-    -- Makes an assumption, that Sass_File_Context inherits from Sass_Context
-    -- and Sass_Options.
-    filectx <- Lib.sass_make_file_context cpath
-    let ctx = castPtr filectx
-    let copts = castPtr filectx
-    copyToOptions opts copts
-    status <- Lib.sass_compile_file_context filectx
-    if status /= 0
-        then do
-            fptr <- newForeignPtr ctxFinalizer filectx
-            return $ Left $
-                SassError (fromIntegral status) (castForeignPtr fptr)
-        else do
-            cstr <- Lib.sass_context_get_output_string ctx
-            !str <- peekCString cstr
-            Lib.sass_delete_file_context filectx
-            return $ Right str
-    where ctxFinalizer = Lib.p_sass_delete_file_context
+compileFile path opts = withCString path $ \cpath ->
+    compileInternal cpath opts
+        Lib.sass_make_file_context
+        Lib.sass_compile_file_context
+        Lib.sass_delete_file_context
+        Lib.p_sass_delete_file_context
+
+-- | Compiles raw Sass content using specified options.
+compileString :: String -- ^ String to compile.
+              -> SassOptions -- ^ Compilation options.
+              -> IO (Either SassError String) -- ^ Error or output string.
+compileString str opts = do
+    cdata <- newCString str
+    compileInternal cdata opts
+        Lib.sass_make_data_context
+        Lib.sass_compile_data_context
+        Lib.sass_delete_data_context
+        Lib.p_sass_delete_data_context
