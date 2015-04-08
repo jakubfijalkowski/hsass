@@ -79,18 +79,21 @@ compileFile :: FilePath -- ^ Path to the file.
             -> SassOptions -- ^ Compilation options.
             -> IO (Either SassError String) -- ^ Error or output string.
 compileFile path opts = withCString path $ \cpath -> do
+    -- Makes an assumption, that Sass_File_Context inherits from Sass_Context
+    -- and Sass_Options.
     filectx <- Lib.sass_make_file_context cpath
-    let ctx = Lib.sass_file_context_get_context filectx
-    let copts = Lib.sass_file_context_get_options filectx
+    let ctx = castPtr filectx
+    let copts = castPtr filectx
     copyToOptions opts copts
     status <- Lib.sass_compile_file_context filectx
     if status /= 0
         then do
             fptr <- newForeignPtr ctxFinalizer filectx
-            return $ Left $ SassError (fromIntegral status) $
-                castForeignPtr fptr
+            return $ Left $
+                SassError (fromIntegral status) (castForeignPtr fptr)
         else do
             cstr <- Lib.sass_context_get_output_string ctx
             !str <- peekCString cstr
+            Lib.sass_delete_file_context filectx
             return $ Right str
     where ctxFinalizer = Lib.p_sass_delete_file_context
