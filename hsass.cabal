@@ -17,13 +17,15 @@ executable hsass
     Text.Sass,
     Text.Sass.Options,
     Text.Sass.Compilation,
-    Text.Sass.Values
+    Text.Sass.Values,
+    Text.Sass.Functions
   build-depends:
     base >=4.7 && <4.8,
     hlibsass >= 0.1,
     data-default-class,
     filepath >= 1.0,
     mtl >= 2.0,
-    containers >= 0.5
+    containers >= 0.5,
+    monad-loops >= 0.3
   default-language:    Haskell2010
   ghc-options:         -pgml g++
