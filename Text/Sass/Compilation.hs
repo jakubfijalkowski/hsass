@@ -13,12 +13,11 @@ module Text.Sass.Compilation
   , compileString
   ) where
 
-import qualified Binding.Libsass    as Lib
-import           Control.Monad      ((>=>))
+import qualified Binding.Libsass   as Lib
+import           Control.Monad     ((>=>))
 import           Foreign
 import           Foreign.C
-import           Text.Sass.Internal (copyToOptions)
-import           Text.Sass.Types    (SassOptions)
+import           Text.Sass.Options
 
 -- | Represents compilation error.
 data SassError = SassError {
@@ -89,7 +88,7 @@ compileInternal str opts make compile delete finalizer = do
     context <- make str
     let context' = castPtr context
     let opts' = castPtr context
-    copyToOptions opts opts'
+    copyToNativeOptions opts opts'
     status <- compile context
     if status /= 0
         then do
