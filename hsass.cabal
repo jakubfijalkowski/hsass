@@ -25,7 +25,6 @@ executable hsass
     data-default-class,
     filepath >= 1.0,
     mtl >= 2.0,
-    containers >= 0.5,
     monad-loops >= 0.3
   default-language:    Haskell2010
   ghc-options:         -pgml g++

@@ -9,12 +9,9 @@ module Text.Sass.Values
   , Lib.SassSeparator (..)
   ) where
 
-import qualified Binding.Libsass             as Lib
-import           Control.Applicative         ((<$>))
-import           Control.Monad.State.Strict
-import           Control.Monad.Writer.Strict
-import           Data.Foldable               (toList)
-import           Data.Sequence               (singleton)
+import qualified Binding.Libsass     as Lib
+import           Control.Applicative ((<$>))
+import           Control.Monad       (forM, zipWithM_, (>=>))
 import           Foreign
 import           Foreign.C
 
@@ -58,23 +55,24 @@ toNativeValue (SassList lst sep') = do
     let len = fromIntegral $ length lst
     let sep = fromIntegral $ fromEnum sep'
     result <- Lib.sass_make_list len sep
-    flip runStateT 0 $ forM_ lst $ \e -> do
-        idx <- get
-        modify' (+1)
-        native <- liftIO $ toNativeValue e
-        liftIO $ Lib.sass_list_set_value result idx native
+    zipWithM_ (addToList result) lst [0..len - 1]
     return result
+    where
+        addToList list e idx = do
+            native <- toNativeValue e
+            Lib.sass_list_set_value list idx native
+
 toNativeValue (SassMap lst) = do
     let len = fromIntegral $ length lst
     result <- Lib.sass_make_map len
-    flip runStateT 0 $ forM_ lst $ \(key, val) -> do
-        idx <- get
-        modify' (+1)
-        nativeKey <- liftIO $ toNativeValue key
-        nativeVal <- liftIO $ toNativeValue val
-        liftIO $ Lib.sass_map_set_key result idx nativeKey
-        liftIO $ Lib.sass_map_set_value result idx nativeVal
+    zipWithM_ (addToMap result) lst [0..len - 1]
     return result
+    where
+        addToMap list (key, val) idx = do
+            nativeKey <- toNativeValue key
+            nativeVal <- toNativeValue val
+            Lib.sass_map_set_key list idx nativeKey
+            Lib.sass_map_set_value list idx nativeVal
 
 -- | Converts native value to 'SassValue'.
 --
@@ -108,17 +106,16 @@ fromNativeValue' Lib.SassError ptr = do
 fromNativeValue' Lib.SassList ptr = do
     len <- Lib.sass_list_get_length ptr
     sep <- fromIntegral <$> Lib.sass_list_get_separator ptr
-    result <- execWriterT $ forM_ [0 .. len - 1] $ \idx -> do
-        val <- liftIO $ Lib.sass_list_get_value ptr idx >>= fromNativeValue
-        tell $ singleton val
-    return $ SassList (toList result) (toEnum sep)
+    lst <- forM [0..len - 1] (Lib.sass_list_get_value ptr >=> fromNativeValue)
+    return $ SassList lst (toEnum sep)
+
 fromNativeValue' Lib.SassMap ptr = do
     len <- Lib.sass_map_get_length ptr
-    result <- execWriterT $ forM_ [0 .. len - 1] $ \idx -> do
-        key <- liftIO $ Lib.sass_map_get_key ptr idx >>= fromNativeValue
-        val <- liftIO $ Lib.sass_map_get_value ptr idx >>= fromNativeValue
-        tell $ singleton (key, val)
-    return $ SassMap (toList result)
+    lst <- forM [0..len - 1] $ \idx -> do
+        key <- Lib.sass_map_get_key ptr idx >>= fromNativeValue
+        val <- Lib.sass_map_get_value ptr idx >>= fromNativeValue
+        return (key, val)
+    return $ SassMap lst
 
 -- | Frees native representation of 'SassValue'.
 --

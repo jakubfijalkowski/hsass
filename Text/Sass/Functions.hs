@@ -11,11 +11,10 @@ module Text.Sass.Functions
   ) where
 
 import qualified Binding.Libsass            as Lib
-import           Control.Monad.Loops        (whileM_)
 import           Control.Monad.State.Strict
 import           Foreign
 import           Foreign.C
-import           Text.Sass.Utils            (listEntryNotNull)
+import           Text.Sass.Utils            (loopCList)
 import           Text.Sass.Values
 
 -- | Type of the function that may be used in sass source.
@@ -66,27 +65,17 @@ makeNativeFunctionList :: [SassFunction] -> IO Lib.SassFunctionList
 makeNativeFunctionList lst = do
     let len = fromIntegral $ length lst
     result <- Lib.sass_make_function_list len
-    flip runStateT 0 $ forM_ lst $ \fn -> do
-        idx <- get
-        modify' (+1)
-        entry <- liftIO $ makeNativeFunction fn
-        liftIO $ Lib.sass_function_set_list_entry result idx entry
+    zipWithM_ (addToList result) lst [0..len - 1] 
     return result
+    where
+        addToList list fn idx = do
+            entry <- makeNativeFunction fn
+            Lib.sass_function_set_list_entry list idx entry
 
 -- | Releases signatures of entries in the list.
 clearNativeFunctionList :: Lib.SassFunctionList -> IO ()
-clearNativeFunctionList list = do
-    flip evalStateT list $ whileM_ listEntryNotNull $ do
-        ptr <- get
-        val <- liftIO $ peek ptr
-        put (ptr `plusPtr` sizeOf val)
-        liftIO $ clearNativeFunction val
+clearNativeFunctionList = loopCList clearNativeFunction
 
 -- | Frees the list and entries, without releasing signatures.
 freeNativeFunctionList :: Lib.SassFunctionList -> IO ()
-freeNativeFunctionList list = do
-    flip evalStateT list $ whileM_ listEntryNotNull $ do
-        ptr <- get
-        val <- liftIO $ peek ptr
-        put (ptr `plusPtr` sizeOf val)
-        liftIO $ freeNativeFunction val
+freeNativeFunctionList = loopCList freeNativeFunction
