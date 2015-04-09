@@ -88,7 +88,8 @@ compileInternal str opts make compile delete finalizer = do
     context <- make str
     let context' = castPtr context
     let opts' = castPtr context
-    status <- withNativeOptions opts opts' $ compile context
+    copyOptionsToNative opts opts'
+    status <- withFunctions opts opts' $ compile context
     if status /= 0
         then do
             fptr <- newForeignPtr finalizer context

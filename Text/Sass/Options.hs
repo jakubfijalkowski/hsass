@@ -2,7 +2,8 @@
 module Text.Sass.Options
   (
     SassOptions (..)
-  , withNativeOptions
+  , copyOptionsToNative
+  , withFunctions
   , Lib.SassOutputStyle (..)
   ) where
 
@@ -74,13 +75,9 @@ instance Default SassOptions where
       , sassFunctions         = Nothing
     }
 
--- | Copies 'SassOptions' to native object, executes action, clears leftovers
---   (see documentation of 'makeNativeFunction') and returns action result.
-withNativeOptions :: SassOptions -- ^ Options.
-                  -> Ptr Lib.SassOptions -- ^ Native options.
-                  -> IO a -- ^ Action.
-                  -> IO a -- ^ Result
-withNativeOptions opt ptr action = do
+-- | Copies 'SassOptions' to native object, excluding 'sassFunctions'.
+copyOptionsToNative :: SassOptions -> Ptr Lib.SassOptions -> IO ()
+copyOptionsToNative opt ptr = do
     Lib.sass_option_set_precision ptr (fromIntegral $ sassPrecision opt)
     Lib.sass_option_set_output_style ptr
         (fromIntegral $ fromEnum $ sassOutputStyle opt)
@@ -104,6 +101,13 @@ withNativeOptions opt ptr action = do
     withOptionalCString (sassSourceMapRoot opt)
         (Lib.sass_option_set_source_map_root ptr)
 
+-- | Copies 'sassFunctions' to native object, executes action, clears leftovers
+--   (see documentation of 'makeNativeFunction') and returns action result.
+withFunctions :: SassOptions -- ^ Options.
+              -> Ptr Lib.SassOptions -- ^ Native options.
+              -> IO a -- ^ Action.
+              -> IO a -- ^ Result
+withFunctions opt ptr action =
     case (sassFunctions opt) of
         Nothing -> action
         Just lst -> do
