@@ -62,10 +62,10 @@ wrapImporter fn url _ _ = peekCString url >>= fn >>= \case
 -- | Converts 'SassImport' into native representation.
 makeNativeImport :: SassImport -> IO Lib.SassImportEntry
 makeNativeImport el = do
-    path <- newOptionalCString $ importPath el
-    base <- newOptionalCString $ importPath el
-    source <- newOptionalCString $ importSource el
-    srcmap <- newOptionalCString $ importSourceMap el
+    path <- maybeNew newCString $ importPath el
+    base <- maybeNew newCString $ importPath el
+    source <- maybeNew newCString $ importSource el
+    srcmap <- maybeNew newCString $ importSourceMap el
     Lib.sass_make_import path base source srcmap
 
 -- | Frees native representation of 'SassImport'.

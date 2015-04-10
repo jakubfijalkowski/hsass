@@ -35,10 +35,6 @@ loopCList action list =
         modify' (`plusPtr` sizeOf val)
         lift $ action val
 
--- | Returns 'CString' when string is not null, otherwise returns 'nullPtr'.
-newOptionalCString :: Maybe String -> IO CString
-newOptionalCString = maybe (return nullPtr) newCString
-
 -- | Copies converted list of elements to new C array.
 copyToCList :: (Num size, Enum size)
             => (CSize -> IO list) -- ^ List creator.
