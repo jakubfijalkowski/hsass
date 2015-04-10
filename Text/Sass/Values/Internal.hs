@@ -33,12 +33,10 @@ toNativeValue (SassList lst sep') = do
     let len = fromIntegral $ length lst
     let sep = fromIntegral $ fromEnum sep'
     result <- Lib.sass_make_list len sep
-    zipWithM_ (addToList result) lst [0..len - 1]
+    zipWithM_ (addToList result) [0..len - 1] lst
     return result
     where
-        addToList list e idx = do
-            native <- toNativeValue e
-            Lib.sass_list_set_value list idx native
+        addToList list idx = toNativeValue >=> Lib.sass_list_set_value list idx
 
 toNativeValue (SassMap lst) = do
     let len = fromIntegral $ length lst

@@ -51,14 +51,12 @@ freeNativeFunction = free
 --   with 'makeNativeFunction'. See documentation above for explanation.
 makeNativeFunctionList :: [SassFunction] -> IO Lib.SassFunctionList
 makeNativeFunctionList lst = do
-    let len = fromIntegral $ length lst
-    result <- Lib.sass_make_function_list len
-    zipWithM_ (addToList result) lst [0..len - 1]
+    let len = length lst
+    result <- Lib.sass_make_function_list (fromIntegral len)
+    zipWithM_ (addToList result) [0..len - 1] lst
     return result
     where
-        addToList list fn idx = do
-            entry <- makeNativeFunction fn
-            Lib.sass_function_set_list_entry list idx entry
+        addToList list idx = makeNativeFunction >=> pokeElemOff list idx
 
 -- | Releases signatures of entries in the list.
 clearNativeFunctionList :: Lib.SassFunctionList -> IO ()
