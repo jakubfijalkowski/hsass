@@ -34,3 +34,22 @@ loopCList action list =
         val <- liftIO $ peek ptr
         modify' (`plusPtr` sizeOf val)
         lift $ action val
+
+-- | Returns 'CString' when string is not null, otherwise returns 'nullPtr'.
+newOptionalCString :: Maybe String -> IO CString
+newOptionalCString = maybe (return nullPtr) newCString
+
+-- | Copies converted list of elements to new C array.
+copyToCList :: (Num size, Enum size)
+            => (CSize -> IO list) -- ^ List creator.
+            -> (a -> IO element) -- ^ Conversion function.
+            -> (list -> size -> element -> IO ()) -- ^ Set element function.
+            -> [a] -- ^ Elements.
+            -> IO list
+copyToCList create convert set list = do
+    let len = length list
+    result <- create $ fromIntegral len
+    zipWithM_ (addToList result) [0..(fromIntegral len) - 1] list
+    return result
+    where
+        addToList lst idx = convert >=> set lst idx

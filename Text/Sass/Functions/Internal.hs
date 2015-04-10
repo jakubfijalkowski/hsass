@@ -9,11 +9,10 @@ module Text.Sass.Functions.Internal
   ) where
 
 import qualified Binding.Libsass            as Lib
-import           Control.Monad.State.Strict
 import           Foreign
 import           Foreign.C
 import           Text.Sass.Functions
-import           Text.Sass.Utils            (loopCList)
+import           Text.Sass.Utils
 import           Text.Sass.Values.Internal
 
 -- | Wraps function of type 'SassFunctionType' into function that may be passed
@@ -50,13 +49,8 @@ freeNativeFunction = free
 --   There is analogous problem in relation to deallocation of the result as
 --   with 'makeNativeFunction'. See documentation above for explanation.
 makeNativeFunctionList :: [SassFunction] -> IO Lib.SassFunctionList
-makeNativeFunctionList lst = do
-    let len = length lst
-    result <- Lib.sass_make_function_list (fromIntegral len)
-    zipWithM_ (addToList result) [0..len - 1] lst
-    return result
-    where
-        addToList list idx = makeNativeFunction >=> pokeElemOff list idx
+makeNativeFunctionList =
+    copyToCList Lib.sass_make_function_list makeNativeFunction pokeElemOff
 
 -- | Releases signatures of entries in the list.
 clearNativeFunctionList :: Lib.SassFunctionList -> IO ()

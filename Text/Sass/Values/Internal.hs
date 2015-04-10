@@ -8,9 +8,10 @@ module Text.Sass.Values.Internal
 
 import qualified Binding.Libsass     as Lib
 import           Control.Applicative ((<$>))
-import           Control.Monad       (forM, zipWithM_, (>=>))
+import           Control.Monad       (forM, (>=>))
 import           Foreign
 import           Foreign.C
+import           Text.Sass.Utils
 import           Text.Sass.Values
 
 -- | Converts a 'SassValue' to native type.
@@ -29,26 +30,20 @@ toNativeValue (SassString str) = withCString str Lib.sass_make_string
 toNativeValue SassNull = Lib.sass_make_null
 toNativeValue (SassWarning str) = withCString str Lib.sass_make_warning
 toNativeValue (SassError str) = withCString str Lib.sass_make_error
-toNativeValue (SassList lst sep') = do
-    let len = fromIntegral $ length lst
-    let sep = fromIntegral $ fromEnum sep'
-    result <- Lib.sass_make_list len sep
-    zipWithM_ (addToList result) [0..len - 1] lst
-    return result
-    where
-        addToList list idx = toNativeValue >=> Lib.sass_list_set_value list idx
+toNativeValue (SassList lst sep') =
+    copyToCList (flip Lib.sass_make_list sep) toNativeValue
+        Lib.sass_list_set_value lst
+    where sep = fromIntegral $ fromEnum sep'
 
-toNativeValue (SassMap lst) = do
-    let len = fromIntegral $ length lst
-    result <- Lib.sass_make_map len
-    zipWithM_ (addToMap result) lst [0..len - 1]
-    return result
+toNativeValue (SassMap lst) = copyToCList Lib.sass_make_map makeVal setVal lst
     where
-        addToMap list (key, val) idx = do
+        makeVal (key, val) = do
             nativeKey <- toNativeValue key
             nativeVal <- toNativeValue val
-            Lib.sass_map_set_key list idx nativeKey
-            Lib.sass_map_set_value list idx nativeVal
+            return (nativeKey, nativeVal)
+        setVal list idx (key, val) = do
+            Lib.sass_map_set_key list idx key
+            Lib.sass_map_set_value list idx val
 
 -- | Converts native value to 'SassValue'.
 --
