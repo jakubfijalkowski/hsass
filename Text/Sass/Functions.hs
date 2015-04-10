@@ -1,8 +1,4 @@
-module Text.Sass.Functions
-  (
-    SassFunctionType
-  , SassFunction (..)
-  ) where
+module Text.Sass.Functions where
 
 import           Text.Sass.Values
 
@@ -13,6 +9,45 @@ type SassFunctionType =
 
 -- | Description of the function that may be used in sass source.
 data SassFunction = SassFunction {
-    funcSignature   :: String -- ^ Signature of the function, parseable by libsass.
-  , funcComputation :: SassFunctionType -- ^ Main function.
+    -- | Signature of the function, parseable by libsass.
+    funcSignature   :: String
+    -- | Main function.
+  , funcComputation :: SassFunctionType
+}
+
+-- | Represents a sass import - a sass content with additional metadata.
+--
+--   Even though this ADT has four fields, you may just provide either
+--   'importPath' and 'importBase' and leave loading to the library, or provide
+--   'importSource' and do not provide 'importPath' and 'importBase'.
+--   Nevertheless, you are free to provide all of the fields.
+data SassImport = SassImport {
+    importPath      :: Maybe FilePath, -- ^ Path to the import, relative to base.
+    importBase      :: Maybe FilePath, -- ^ Base path.
+    importSource    :: Maybe String,   -- ^ Import's source.
+    importSourceMap :: Maybe String    -- ^ Source map of the import.
+}
+
+-- | 'makeSourceImport' @s@ is equivalent to 'SassImport'
+--   @Nothing Nothing (Just s) Nothing@.
+makeSourceImport :: String -> SassImport
+makeSourceImport s = SassImport Nothing Nothing (Just s) Nothing
+
+-- | 'makePathImport' @p b@ is equivalent to 'SassImport'
+--   @(Just p) (Just b) Nothing Nothing@.
+makePathImport :: String -> String -> SassImport
+makePathImport p b = SassImport (Just p) (Just b) Nothing Nothing
+
+-- | Type of the function that acts like importer.
+--
+--   You may return empty list in order to tell libsass to handle the import by
+--   itself.
+type SassImporterType =
+       String          -- ^ Path to the import that needs to be loaded.
+    -> IO [SassImport] -- ^ Import candidates.
+
+-- | Description of the importer.
+data SassImporter = SassImporter {
+    importerPriority :: Double           -- ^ Priority of the importer.
+  , importerFunction :: SassImporterType -- ^ Main function.
 }

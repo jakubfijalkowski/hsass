@@ -1,14 +1,6 @@
-module Text.Sass.Functions.Internal
-  (
-    makeNativeFunction
-  , clearNativeFunction
-  , freeNativeFunction
-  , makeNativeFunctionList
-  , clearNativeFunctionList
-  , freeNativeFunctionList
-  ) where
+module Text.Sass.Functions.Internal where
 
-import qualified Binding.Libsass            as Lib
+import qualified Binding.Libsass           as Lib
 import           Foreign
 import           Foreign.C
 import           Text.Sass.Functions
@@ -59,3 +51,51 @@ clearNativeFunctionList = loopCList clearNativeFunction
 -- | Frees the list and entries, without releasing signatures.
 freeNativeFunctionList :: Lib.SassFunctionList -> IO ()
 freeNativeFunctionList = loopCList freeNativeFunction
+
+-- | Wraps function of type 'SassImporterType'
+wrapImporter :: SassImporterType -> Lib.SassImporterFnType
+wrapImporter fn url _ _ = peekCString url >>= fn >>= makeNativeImportList
+
+-- | Converts 'SassImport' into native representation.
+makeNativeImport :: SassImport -> IO Lib.SassImportEntry
+makeNativeImport el = do
+    path <- newOptionalCString $ importPath el
+    base <- newOptionalCString $ importPath el
+    source <- newOptionalCString $ importSource el
+    srcmap <- newOptionalCString $ importSourceMap el
+    Lib.sass_make_import path base source srcmap
+
+-- | Frees native representation of 'SassImport'.
+freeNativeImport :: Lib.SassImportEntry -> IO ()
+freeNativeImport = Lib.sass_delete_import
+
+-- | Converts list of 'SassImport' into native representation.
+makeNativeImportList :: [SassImport] -> IO Lib.SassImportList
+makeNativeImportList =
+    copyToCList Lib.sass_make_import_list makeNativeImport pokeElemOff
+
+-- | Frees native representation of list of 'SassEntry', including entries.
+freeNativeImportList :: Lib.SassImportList -> IO ()
+freeNativeImportList = Lib.sass_delete_import_list
+
+-- | Converts 'SassImporter' into native representation.
+makeNativeImporter :: SassImporter -> IO Lib.SassImporterEntry
+makeNativeImporter (SassImporter p func) = do
+    func' <- Lib.mkSassImporterFn $ wrapImporter func
+    Lib.sass_make_importer func' (realToFrac p) nullPtr
+
+-- | Frees native representation of 'SassImporter'.
+freeNativeImporter :: Lib.SassImporterEntry -> IO ()
+freeNativeImporter = Lib.sass_delete_importer
+
+-- | Makes native representation of list of 'SassImporter's.
+makeNativeImporterList :: [SassImporter] -> IO Lib.SassImporterList
+makeNativeImporterList =
+    copyToCList Lib.sass_make_importer_list makeNativeImporter pokeElemOff
+
+-- | Frees list of native representations of 'SassImporter's.
+--
+--   Libsass does not provide function to free this kind of objects, but we
+--   provide it just in case.
+freeNativeImporterList :: Lib.SassImporterList -> IO ()
+freeNativeImporterList lst = (loopCList freeNativeImporter lst) >> free lst
