@@ -26,6 +26,13 @@ data SassError = SassError {
     errorContext :: ForeignPtr Lib.SassContext
 }
 
+instance Show SassError where
+    show (SassError s _) =
+        "SassError: cannot compile provided source, error status: " ++ show s
+
+instance Eq SassError where
+    (SassError s1 _) == (SassError s2 _) = s1 == s2
+
 -- | Loads specified property from context and converts it to desired type.
 loadFromError :: (Ptr Lib.SassContext -> IO a) -- ^ Accessor function.
               -> (a -> IO b) -- ^ Conversion method.

@@ -23,9 +23,8 @@ description:
   manage libsass's data(eg. importers, options, values) and modify compilation
   process as you like. 
 
-executable hsass
-  main-is:             Main.hs
-  other-modules:
+library
+  exposed-modules:
       Text.Sass
     , Text.Sass.Compilation
     , Text.Sass.Functions
@@ -37,11 +36,25 @@ executable hsass
     , Text.Sass.Values.Internal
     , Text.Sass.Utils
   build-depends:
-    base               >=4.7 && <4.8,
+    base               >= 4.7 && <4.8,
     hlibsass           >= 0.1,
     data-default-class,
     filepath           >= 1.0,
     mtl                >= 2.0,
     monad-loops        >= 0.3
+  hs-source-dirs:      .
   default-language:    Haskell2010
   ghc-options:         -Wall -pgml g++
+
+test-suite test
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  type:                exitcode-stdio-1.0
+  ghc-options:         -Wall -pgml g++
+  build-depends:
+      base               >= 4.7 && <4.8
+    , hspec              >= 2.1.5
+    , temporary          >= 1.1
+    , hsass
+    , data-default-class
+  default-language:    Haskell2010
