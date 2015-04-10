@@ -18,6 +18,7 @@ import           Control.Monad     ((>=>))
 import           Foreign
 import           Foreign.C
 import           Text.Sass.Options
+import           Text.Sass.Internal
 
 -- | Represents compilation error.
 data SassError = SassError {

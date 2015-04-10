@@ -15,10 +15,16 @@ executable hsass
   main-is:             Main.hs
   other-modules:
     Text.Sass,
-    Text.Sass.Options,
     Text.Sass.Compilation,
+    Text.Sass.Functions,
+    Text.Sass.Options,
     Text.Sass.Values,
-    Text.Sass.Functions
+
+    Text.Sass.Internal,
+    Text.Sass.Functions.Internal,
+    Text.Sass.Options.Internal,
+    Text.Sass.Values.Internal,
+    Text.Sass.Utils
   build-depends:
     base >=4.7 && <4.8,
     hlibsass >= 0.1,
