@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 module Text.Sass.Functions.Internal where
 
 import qualified Binding.Libsass           as Lib
@@ -54,7 +55,9 @@ freeNativeFunctionList = loopCList freeNativeFunction
 
 -- | Wraps function of type 'SassImporterType'
 wrapImporter :: SassImporterType -> Lib.SassImporterFnType
-wrapImporter fn url _ _ = peekCString url >>= fn >>= makeNativeImportList
+wrapImporter fn url _ _ = peekCString url >>= fn >>= \case
+    [] -> return nullPtr
+    xs -> makeNativeImportList xs
 
 -- | Converts 'SassImport' into native representation.
 makeNativeImport :: SassImport -> IO Lib.SassImportEntry

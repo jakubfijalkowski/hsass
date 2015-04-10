@@ -46,6 +46,12 @@ data SassOptions = SassOptions {
   , sassSourceMapRoot     :: Maybe String
     -- | List of user-supplied functions that may be used in sass files.
   , sassFunctions         :: Maybe [SassFunction]
+    -- | List of user-supplied functions that provide "headers" for sass files.
+    --   Header is injected at the beginning of a file which name is passed as
+    --   the first argument of importer.
+  , sassHeaders           :: Maybe [SassImporter]
+    -- | List of user-supplied functions that resolve @import directives.
+  , sassImporters         :: Maybe [SassImporter]
 }
 
 instance Default SassOptions where
@@ -66,4 +72,6 @@ instance Default SassOptions where
       , sassSourceMapFile     = Nothing
       , sassSourceMapRoot     = Nothing
       , sassFunctions         = Nothing
+      , sassHeaders           = Nothing
+      , sassImporters         = Nothing
     }
