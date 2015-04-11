@@ -1,10 +1,11 @@
 -- | Module    : Text.Sass
--- Description : Integrating Sass into Haskell applications.
 -- Stability   : experimental
 --
 -- This module provides support for <http://sass-lang.com/ Sass>, a CSS
 -- extension language. It supports basic compilation, functions, importers and
 -- headers, so it should suffice for most of the work.
+--
+-- Code used in this document is testable - see test/Text/Sass/TutorialSpec.hs.
 module Text.Sass
   (
     -- * Compilation
@@ -26,7 +27,6 @@ module Text.Sass
     -- $headers_and_importers
 
   , module Text.Sass.Functions
-    -- * Default value
   , module Data.Default.Class
   ) where
 

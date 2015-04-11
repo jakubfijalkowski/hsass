@@ -62,7 +62,7 @@ copyToCList create convert set list = do
 concatPaths :: [FilePath] -> FilePath
 concatPaths = intercalate [searchPathSeparator]
 
--- | Generates array indexes for array of specified length.
+-- | Generates array indices for array of specified length.
 arrayRange :: (Num a, Integral a, Enum a) => a -> [a]
 arrayRange 0 = []
 arrayRange l = [0..l - 1]

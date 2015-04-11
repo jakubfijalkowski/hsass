@@ -57,7 +57,7 @@ clearNativeFunction entry = do
 freeNativeFunction :: Lib.SassFunctionEntry -> IO ()
 freeNativeFunction = free
 
--- | Converts list of 'SassFunction' into native representation.
+-- | Converts list of 'SassFunction's into native representation.
 --
 -- There is analogous problem in relation to deallocation of the result as
 -- with 'makeNativeFunction'. See documentation above for explanation.
@@ -73,7 +73,7 @@ clearNativeFunctionList = loopCList clearNativeFunction
 freeNativeFunctionList :: Lib.SassFunctionList -> IO ()
 freeNativeFunctionList = loopCList freeNativeFunction
 
--- | Wraps function of type 'SassImporterType'
+-- | Wraps function of type 'SassImporterType'.
 wrapImporter :: SassImporterType -> Lib.SassImporterFnType
 wrapImporter fn url _ _ = peekCString url >>= fn >>= \case
     [] -> return nullPtr
@@ -92,7 +92,7 @@ makeNativeImport el = do
 freeNativeImport :: Lib.SassImportEntry -> IO ()
 freeNativeImport = Lib.sass_delete_import
 
--- | Converts list of 'SassImport' into native representation.
+-- | Converts list of 'SassImport's into native representation.
 makeNativeImportList :: [SassImport] -> IO Lib.SassImportList
 makeNativeImportList =
     copyToCList Lib.sass_make_import_list makeNativeImport pokeElemOff

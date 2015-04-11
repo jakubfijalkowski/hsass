@@ -21,7 +21,7 @@ type SassFunctionType =
 
 -- | Description of the function that may be used in sass source.
 data SassFunction = SassFunction {
-    -- | Signature of the function, parseable by libsass.
+    -- | Signature of the function, parsable by libsass.
     funcSignature   :: String
     -- | Main function.
   , funcComputation :: SassFunctionType
@@ -31,7 +31,7 @@ data SassFunction = SassFunction {
 --
 -- Even though this ADT has four fields, you may just provide either
 -- 'importPath' and 'importBase' and leave loading to the library, or provide
--- 'importSource' and do not provide 'importPath' and 'importBase'.
+-- 'importSource' and do not provide 'importPath' nor 'importBase'.
 -- Nevertheless, you are free to provide all of the fields.
 data SassImport = SassImport {
     importPath      :: Maybe FilePath, -- ^ Path to the import, relative to base.
