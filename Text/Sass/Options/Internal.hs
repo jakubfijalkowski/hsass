@@ -1,3 +1,5 @@
+-- | Copying 'SassOptions' into native context. This module is internal and
+-- should not be considered stable.
 {-# LANGUAGE BangPatterns #-}
 module Text.Sass.Options.Internal
   (
@@ -47,7 +49,7 @@ copyOptionsToNative opt ptr = do
         (sassImporters opt)
 
 -- | Copies 'sassFunctions' to native object, executes action, clears leftovers
---   (see documentation of 'makeNativeFunction') and returns action result.
+-- (see documentation of 'makeNativeFunction') and returns action result.
 withFunctions :: SassOptions -- ^ Options.
               -> Ptr Lib.SassOptions -- ^ Native options.
               -> IO a -- ^ Action.

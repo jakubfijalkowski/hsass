@@ -1,7 +1,12 @@
+-- | Compilation of sass source or sass files.
 {-# LANGUAGE BangPatterns #-}
 module Text.Sass.Compilation
   (
-    SassError (errorStatus)
+    -- * Compilation
+    compileFile
+  , compileString
+    -- * Error reporting
+  , SassError (errorStatus)
   , errorJson
   , errorText
   , errorMessage
@@ -9,8 +14,6 @@ module Text.Sass.Compilation
   , errorSource
   , errorLine
   , errorColumn
-  , compileFile
-  , compileString
   ) where
 
 import qualified Binding.Libsass   as Lib

@@ -1,3 +1,5 @@
+-- | Conversion of 'SassValue' or list of 'SassValue's into native
+-- representation. This module is internal and should not be considered stable.
 module Text.Sass.Values.Internal
   (
     toNativeValue
@@ -15,8 +17,6 @@ import           Text.Sass.Utils
 import           Text.Sass.Values
 
 -- | Converts a 'SassValue' to native type.
---
---   This is (mostly) internal function.
 toNativeValue :: SassValue -> IO (Ptr Lib.SassValue)
 toNativeValue (SassBool val) = Lib.sass_make_boolean val
 toNativeValue (SassNumber val unit) = withCString unit $
@@ -46,8 +46,6 @@ toNativeValue (SassMap lst) = copyToCList Lib.sass_make_map makeVal setVal lst
             Lib.sass_map_set_value list idx val
 
 -- | Converts native value to 'SassValue'.
---
---   This is (mostly) internal function.
 fromNativeValue :: Ptr Lib.SassValue -> IO SassValue
 fromNativeValue ptr = do
     tag <- Lib.sass_value_get_tag ptr
@@ -89,13 +87,9 @@ fromNativeValue' Lib.SassMap ptr = do
     return $ SassMap lst
 
 -- | Frees native representation of 'SassValue'.
---
---   This is (mostly) internal function.
 deleteNativeValue :: Ptr Lib.SassValue -> IO ()
 deleteNativeValue = Lib.sass_delete_value
 
 -- | Makes 'ForeignPtr' from 'Ptr' to native representation of 'SassValue'.
---
---   This is (mostly) internal function.
 makeValueForeignPtr :: Ptr Lib.SassValue -> IO (ForeignPtr Lib.SassValue)
 makeValueForeignPtr = newForeignPtr Lib.p_sass_delete_value

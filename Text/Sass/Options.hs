@@ -1,3 +1,4 @@
+-- | Compilation options.
 module Text.Sass.Options
   (
     SassOptions (..)
@@ -15,7 +16,7 @@ data SassOptions = SassOptions {
     -- | Output style for the generated css code.
   , sassOutputStyle       :: Lib.SassOutputStyle
     -- | Emit comments in the generated CSS indicating the corresponding source
-    --   line.
+    -- line.
   , sassSourceComments    :: Bool
     -- | Embed sourceMappingUrl as data uri.
   , sassSourceMapEmbed    :: Bool
@@ -30,8 +31,8 @@ data SassOptions = SassOptions {
     -- | String to be used to for line feeds.
   , sassLinefeed          :: String
     -- | The input path used for source map generation. It can be used to
-    --   define something with string compilation or to overload the input file
-    --   path.
+    -- define something with string compilation or to overload the input file
+    -- path.
   , sassInputPath         :: Maybe FilePath
     -- | The output path used for source map generation.
   , sassOutputPath        :: Maybe FilePath
@@ -40,15 +41,15 @@ data SassOptions = SassOptions {
     -- | Paths used to resolve @include.
   , sassIncludePaths      :: Maybe [FilePath]
     -- | Path to source map file. Enables source map generation and is used to
-    --   create sourceMappingUrl
+    -- create sourceMappingUrl
   , sassSourceMapFile     :: Maybe FilePath
     -- | Directly inserted in source maps.
   , sassSourceMapRoot     :: Maybe String
     -- | List of user-supplied functions that may be used in sass files.
   , sassFunctions         :: Maybe [SassFunction]
     -- | List of user-supplied functions that provide "headers" for sass files.
-    --   Header is injected at the beginning of a file which name is passed as
-    --   the first argument of importer.
+    -- Header is injected at the beginning of a file which name is passed as
+    -- the first argument of importer.
   , sassHeaders           :: Maybe [SassImporter]
     -- | List of user-supplied functions that resolve @import directives.
   , sassImporters         :: Maybe [SassImporter]

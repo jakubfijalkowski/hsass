@@ -1,3 +1,5 @@
+-- | Provides API for managing values that may be extracter from or injected to
+-- sass source file.
 module Text.Sass.Values
   (
     SassMapEntry
@@ -12,15 +14,16 @@ type SassMapEntry = (SassValue, SassValue)
 
 -- | Represents value used by libsass.
 data SassValue = SassBool Bool -- ^ Boolean value.
-               | SassNumber Double String -- ^ Number (value and unit)
-               | SassColor { -- ^ RGBA color.
+               | SassNumber Double String -- ^ Number (value and unit).
+               | SassColor {
                     sassColorR :: Double,
                     sassColorG :: Double,
                     sassColorB :: Double,
                     sassColorA :: Double
-                 }
+                 } -- ^ RGBA color.
                 | SassString String -- ^ String
-                | SassList [SassValue] Lib.SassSeparator -- ^ List of 'SassValue's.
+                | SassList [SassValue] Lib.SassSeparator
+                  -- ^ List of 'SassValue's.
                 | SassMap [SassMapEntry] -- ^ Map.
                 | SassNull -- ^ Null value.
                 | SassWarning String -- ^ Warning with message.

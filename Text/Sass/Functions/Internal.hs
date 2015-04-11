@@ -1,5 +1,25 @@
 {-# LANGUAGE LambdaCase #-}
-module Text.Sass.Functions.Internal where
+module Text.Sass.Functions.Internal
+  (
+    -- * Functions
+    wrapFunction
+  , makeNativeFunction
+  , clearNativeFunction
+  , freeNativeFunction
+  , makeNativeFunctionList
+  , clearNativeFunctionList
+  , freeNativeFunctionList
+    -- * Imports and headers
+  , wrapImporter
+  , makeNativeImport
+  , freeNativeImport
+  , makeNativeImportList
+  , freeNativeImportList
+  , makeNativeImporter
+  , freeNativeImporter
+  , makeNativeImporterList
+  , freeNativeImporterList
+  ) where
 
 import qualified Binding.Libsass           as Lib
 import           Foreign
@@ -9,18 +29,18 @@ import           Text.Sass.Utils
 import           Text.Sass.Values.Internal
 
 -- | Wraps function of type 'SassFunctionType' into function that may be passed
---   to native library.
+-- to native library.
 wrapFunction :: SassFunctionType -> Lib.SassFunctionFnType
 wrapFunction fn args _ _ = fromNativeValue args >>= fn >>= toNativeValue
 
 -- | Converts 'SassFunction' into native representation.
 --
---   Freeing native representation is not a pleasant process - libsass frees
---   the 'Lib.SassFunctionEntry', but does not free signature. Because of that,
---   special care must be taken in order to properly deallocate the object.
---   If you don't want to pass the resulting object to Sass_Options,
---   call both 'clearNativeFunction' and then 'freeNativeFunction'. Otherwise,
---   you should call 'clearNativeFunction' BEFORE you deallocate context.
+-- Freeing native representation is not a pleasant process - libsass frees
+-- the 'Lib.SassFunctionEntry', but does not free signature. Because of that,
+-- special care must be taken in order to properly deallocate the object.
+-- If you don't want to pass the resulting object to Sass_Options,
+-- call both 'clearNativeFunction' and then 'freeNativeFunction'. Otherwise,
+-- you should call 'clearNativeFunction' BEFORE you deallocate context.
 makeNativeFunction :: SassFunction -> IO Lib.SassFunctionEntry
 makeNativeFunction (SassFunction sig' fn) = do
     sig <- newCString sig'
@@ -39,8 +59,8 @@ freeNativeFunction = free
 
 -- | Converts list of 'SassFunction' into native representation.
 --
---   There is analogous problem in relation to deallocation of the result as
---   with 'makeNativeFunction'. See documentation above for explanation.
+-- There is analogous problem in relation to deallocation of the result as
+-- with 'makeNativeFunction'. See documentation above for explanation.
 makeNativeFunctionList :: [SassFunction] -> IO Lib.SassFunctionList
 makeNativeFunctionList =
     copyToCList Lib.sass_make_function_list makeNativeFunction pokeElemOff
@@ -98,7 +118,7 @@ makeNativeImporterList =
 
 -- | Frees list of native representations of 'SassImporter's.
 --
---   Libsass does not provide function to free this kind of objects, but we
---   provide it just in case.
+-- Libsass does not provide function to free this kind of objects, but we
+-- provide it just in case.
 freeNativeImporterList :: Lib.SassImporterList -> IO ()
 freeNativeImporterList lst = (loopCList freeNativeImporter lst) >> free lst
