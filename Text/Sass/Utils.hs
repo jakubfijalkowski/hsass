@@ -49,3 +49,8 @@ copyToCList create convert set list = do
     return result
     where
         addToList lst idx = convert >=> set lst idx
+
+-- | Generates array indexes for array of specified length.
+arrayRange :: (Num a, Integral a, Enum a) => a -> [a]
+arrayRange 0 = []
+arrayRange l = [0..l - 1]

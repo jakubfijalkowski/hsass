@@ -77,12 +77,12 @@ fromNativeValue' Lib.SassError ptr = do
 fromNativeValue' Lib.SassList ptr = do
     len <- Lib.sass_list_get_length ptr
     sep <- fromIntegral <$> Lib.sass_list_get_separator ptr
-    lst <- forM [0..len - 1] (Lib.sass_list_get_value ptr >=> fromNativeValue)
+    lst <- forM (arrayRange len)
+        (Lib.sass_list_get_value ptr >=> fromNativeValue)
     return $ SassList lst (toEnum sep)
-
 fromNativeValue' Lib.SassMap ptr = do
     len <- Lib.sass_map_get_length ptr
-    lst <- forM [0..len - 1] $ \idx -> do
+    lst <- forM (arrayRange len) $ \idx -> do
         key <- Lib.sass_map_get_key ptr idx >>= fromNativeValue
         val <- Lib.sass_map_get_value ptr idx >>= fromNativeValue
         return (key, val)
