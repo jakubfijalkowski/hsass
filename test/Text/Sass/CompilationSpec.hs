@@ -5,8 +5,15 @@ import           System.IO.Temp
 import           Test.Hspec
 import           Text.Sass
 
-spec :: Spec
+import           Data.Either            (isLeft)
+import           Text.Sass.TestingUtils
+
+compilationSpec, errorReportingSpec, spec :: Spec
 spec = do
+    describe "Compilation" compilationSpec
+    describe "Error reporting" errorReportingSpec
+
+compilationSpec = do
     it "should compile simple source" $ do
         compileString "foo { margin: 21px * 2; }" def `shouldReturn`
             Right "foo {\n  margin: 42px; }\n"
@@ -29,3 +36,36 @@ spec = do
             hClose h
             compileFile p opts `shouldReturn` Right "foo{margin:42px}\n"
 
+errorReportingSpec = do
+    it "string compilation should report error on invalid code" $ do
+        compileString "inv mark" def `returnShouldSatisfy` isLeft
+
+    it "file compilation should report error on invalid code" $ do
+        withSystemTempFile "styles.sass" $ \p h -> do
+            hPutStr h "!@# !@##  ## #"
+            hClose h
+            compileFile p def `returnShouldSatisfy` isLeft
+
+    it "should contain line" $ do
+        (Left r) <- compileString "invalid mark" def
+        errorLine r `shouldReturn` 1
+
+    it "should contain column" $ do
+        (Left r) <- compileString "body { !! }" def
+        errorColumn r `shouldReturn` 6
+
+    it "should contain description" $ do
+        (Left r) <- compileString "body { !! }" def
+        errorText r `returnShouldSatisfy` (not . null)
+
+    it "should contain message" $ do
+        (Left r) <- compileString "body { !! }" def
+        errorMessage r `returnShouldSatisfy` (not . null)
+
+    it "should contain Json description" $ do
+        (Left r) <- compileString "body { !! }" def
+        errorJson r `returnShouldSatisfy` (not . null)
+
+    it "should contain file path" $ do
+        (Left r) <- compileString "body { !! }" def
+        errorFile r `returnShouldSatisfy` (not . null)
