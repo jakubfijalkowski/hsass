@@ -14,7 +14,7 @@ module Text.Sass.Utils
   ) where
 
 import           Control.Monad.Loops        (whileM_)
-import           Control.Monad.State.Strict hiding (sequence)
+import           Control.Monad.State.Strict
 import           Data.List                  (intercalate)
 import           Foreign
 import           Foreign.C

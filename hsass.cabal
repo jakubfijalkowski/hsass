@@ -41,17 +41,17 @@ library
     hlibsass           >= 0.1,
     data-default-class,
     filepath           >= 1.0,
-    mtl                >= 2.0,
+    mtl                >= 2.2,
     monad-loops        >= 0.3
   hs-source-dirs:      .
   default-language:    Haskell2010
-  ghc-options:         -Wall -pgml g++
+  ghc-options:         -Wall
 
 test-suite test
   hs-source-dirs:      test
   main-is:             Spec.hs
   type:                exitcode-stdio-1.0
-  ghc-options:         -Wall -pgml g++
+  ghc-options:         -Wall
   build-depends:
       base               >= 4.7 && <4.8
     , hspec              >= 2.1.5
