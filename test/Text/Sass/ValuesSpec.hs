@@ -31,6 +31,9 @@ testDeserialize a e =
     in compileString ("foo { prop: foo(" ++ e ++ "); }") opts `shouldReturn`
         Right ("foo {\n  prop: " ++ e ++ "; }\n")
 
+main :: IO ()
+main = hspec spec
+
 spec :: Spec
 spec = do
     it "should serialize boolean true" $ do

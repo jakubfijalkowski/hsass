@@ -21,7 +21,7 @@ module Text.Sass.Functions.Internal
   , freeNativeImporterList
   ) where
 
-import qualified Binding.Libsass           as Lib
+import qualified Bindings.Libsass          as Lib
 import           Foreign
 import           Foreign.C
 import           Text.Sass.Functions

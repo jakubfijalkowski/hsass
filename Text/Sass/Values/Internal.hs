@@ -8,7 +8,7 @@ module Text.Sass.Values.Internal
   , makeValueForeignPtr
   ) where
 
-import qualified Binding.Libsass     as Lib
+import qualified Bindings.Libsass    as Lib
 import           Control.Applicative ((<$>))
 import           Control.Monad       (forM, (>=>))
 import           Foreign

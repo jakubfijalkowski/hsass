@@ -5,7 +5,7 @@ module Text.Sass.Options
   , Lib.SassOutputStyle (..)
   ) where
 
-import qualified Binding.Libsass     as Lib
+import qualified Bindings.Libsass    as Lib
 import           Data.Default.Class
 import           Text.Sass.Functions
 

@@ -37,6 +37,9 @@ importer2 src = return [makeSourceImport $ "$file: " ++ src ++ "2;"]
 importerSigs :: [SassImporter]
 importerSigs = [SassImporter 0.5 importer1, SassImporter 1 importer2]
 
+main :: IO ()
+main = hspec spec
+
 spec :: Spec
 spec = do
     describe "max3" $ do

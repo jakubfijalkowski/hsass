@@ -35,6 +35,9 @@ importFunction _      = return [makeSourceImport altInclContent]
 importers :: [SassImporter]
 importers = [SassImporter 1 importFunction]
 
+main :: IO ()
+main = hspec spec
+
 spec :: Spec
 spec = do
     it "should call simple function" $ do

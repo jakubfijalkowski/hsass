@@ -8,6 +8,9 @@ import           Text.Sass
 import           Data.Either            (isLeft)
 import           Text.Sass.TestingUtils
 
+main :: IO ()
+main = hspec spec
+
 compilationSpec, errorReportingSpec, spec :: Spec
 spec = do
     describe "Compilation" compilationSpec

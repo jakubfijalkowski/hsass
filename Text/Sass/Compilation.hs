@@ -16,12 +16,12 @@ module Text.Sass.Compilation
   , errorColumn
   ) where
 
-import qualified Binding.Libsass   as Lib
-import           Control.Monad     ((>=>))
+import qualified Bindings.Libsass   as Lib
+import           Control.Monad      ((>=>))
 import           Foreign
 import           Foreign.C
-import           Text.Sass.Options
 import           Text.Sass.Internal
+import           Text.Sass.Options
 
 -- | Represents compilation error.
 data SassError = SassError {

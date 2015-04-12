@@ -7,7 +7,7 @@ module Text.Sass.Values
   , Lib.SassSeparator (..)
   ) where
 
-import qualified Binding.Libsass as Lib
+import qualified Bindings.Libsass as Lib
 
 -- | Entry of 'SassMap'.
 type SassMapEntry = (SassValue, SassValue)

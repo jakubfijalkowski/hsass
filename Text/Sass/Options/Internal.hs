@@ -7,7 +7,7 @@ module Text.Sass.Options.Internal
   , withFunctions
   ) where
 
-import qualified Binding.Libsass              as Lib
+import qualified Bindings.Libsass             as Lib
 import           Control.Applicative          ((<$>))
 import           Control.Monad                ((>=>))
 import           Foreign
