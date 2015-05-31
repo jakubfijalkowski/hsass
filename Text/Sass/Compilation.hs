@@ -1,5 +1,7 @@
 -- | Compilation of sass source or sass files.
-{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE BangPatterns         #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 module Text.Sass.Compilation
   (
     -- * Compilation
@@ -16,8 +18,9 @@ module Text.Sass.Compilation
   , errorColumn
   ) where
 
-import qualified Bindings.Libsass   as Lib
-import           Control.Monad      ((>=>))
+import qualified Bindings.Libsass    as Lib
+import           Control.Applicative ((<$>))
+import           Control.Monad       ((>=>))
 import           Foreign
 import           Foreign.C
 import           Text.Sass.Internal
@@ -35,6 +38,16 @@ instance Show SassError where
 
 instance Eq SassError where
     (SassError s1 _) == (SassError s2 _) = s1 == s2
+
+-- | Result of compilation.
+class SassResult a where
+    toSassResult :: ForeignPtr Lib.SassContext -> IO a
+
+instance SassResult String where
+    toSassResult ptr = withForeignPtr ptr $ \ctx -> do
+        result <- Lib.sass_context_get_output_string ctx
+        !result' <- peekCString result
+        return result'
 
 -- | Loads specified property from context and converts it to desired type.
 loadFromError :: (Ptr Lib.SassContext -> IO a) -- ^ Accessor function.
@@ -87,31 +100,27 @@ errorColumn :: SassError -> IO Int
 errorColumn = loadIntFromError Lib.sass_context_get_error_column
 
 -- | Common code for 'compileFile' and 'compileString'.
-compileInternal :: CString -- ^ String that will be passed to 'make context'.
+compileInternal :: (SassResult b)
+                => CString -- ^ String that will be passed to 'make context'.
                 -> SassOptions
                 -> (CString -> IO (Ptr a)) -- ^ Make context.
                 -> (Ptr a -> IO CInt) -- ^ Compile context.
-                -> (Ptr a -> IO ()) -- ^ Delete context.
                 -> FinalizerPtr a -- ^ Context finalizer.
-                -> IO (Either SassError String)
-compileInternal str opts make compile delete finalizer = do
+                -> IO (Either SassError b)
+compileInternal str opts make compile finalizer = do
     -- Makes an assumption, that Sass_*_Context inherits from Sass_Context
     -- and Sass_Options.
     context <- make str
-    let context' = castPtr context
     let opts' = castPtr context
     copyOptionsToNative opts opts'
     status <- withFunctions opts opts' $ compile context
+    fptr <- castForeignPtr <$> newForeignPtr finalizer context
     if status /= 0
-        then do
-            fptr <- newForeignPtr finalizer context
-            return $ Left $
-                SassError (fromIntegral status) (castForeignPtr fptr)
+        then return $ Left $
+            SassError (fromIntegral status) fptr
         else do
-            result <- Lib.sass_context_get_output_string context'
-            !result' <- peekCString result
-            delete context
-            return $ Right result'
+            result <- toSassResult fptr
+            return $ Right result
 
 
 -- | Compiles file using specified options.
@@ -122,7 +131,6 @@ compileFile path opts = withCString path $ \cpath ->
     compileInternal cpath opts
         Lib.sass_make_file_context
         Lib.sass_compile_file_context
-        Lib.sass_delete_file_context
         Lib.p_sass_delete_file_context
 
 -- | Compiles raw Sass content using specified options.
@@ -134,5 +142,4 @@ compileString str opts = do
     compileInternal cdata opts
         Lib.sass_make_data_context
         Lib.sass_compile_data_context
-        Lib.sass_delete_data_context
         Lib.p_sass_delete_data_context
