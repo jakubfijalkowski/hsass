@@ -5,15 +5,23 @@ import           System.IO.Temp
 import           Test.Hspec
 import           Text.Sass
 
-import           Data.Either            (isLeft)
+import           Data.Either            (isLeft, isRight)
+import           Data.Maybe             (isJust)
 import           Text.Sass.TestingUtils
 
 main :: IO ()
 main = hspec spec
 
-compilationSpec, errorReportingSpec, spec :: Spec
+importerFunc :: String -> IO [SassImport]
+importerFunc _ = return [makeSourceImport "a { margin: 1px; }"]
+
+importers :: [SassImporter]
+importers = [SassImporter 1 importerFunc]
+
+extendedResultSpec, compilationSpec, errorReportingSpec, spec :: Spec
 spec = do
     describe "Compilation" compilationSpec
+    describe "Extended compilation" extendedResultSpec
     describe "Error reporting" errorReportingSpec
 
 compilationSpec = do
@@ -38,6 +46,34 @@ compilationSpec = do
             hPutStr h "foo { margin: 21px * 2; }"
             hClose h
             compileFile p opts `shouldReturn` Right "foo{margin:42px}\n"
+
+extendedResultSpec = do
+    it "should compile simple source" $ do
+        res <- compileExtendedString "foo { margin: 21px * 2; }" def
+        res `shouldSatisfy` isRight
+        let Right res' = res
+        resultString res' `shouldBe` "foo {\n  margin: 42px; }\n"
+
+    it "should report correct includes when available" $ do
+        let opts = def { sassImporters = Just importers }
+        Right res <- compileExtendedString "@import '_abc';" opts
+        resultIncludes res `shouldReturn` [ "_abc" ]
+
+    it "should report no includes when unavailable" $ do
+        Right res <- compileExtendedString "foo { margin: 1px; }" def
+        resultIncludes res `shouldReturn` [ ]
+
+    it "should retrieve source map if available" $ do
+        let opts = def { sassSourceMapFile = Just "abc.css" }
+        Right res <- compileExtendedString "foo { margin: 1px; }" opts
+        m <- resultSourcemap res
+        m `shouldSatisfy` isJust
+        let Just m' = m
+        m' `shouldSatisfy` (not . null)
+
+    it "should return Nothing is source map if not available" $ do
+        Right res <- compileExtendedString "foo { margin: 1px; }" def
+        resultSourcemap res `shouldReturn` Nothing
 
 errorReportingSpec = do
     it "string compilation should report error on invalid code" $

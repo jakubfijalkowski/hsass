@@ -7,8 +7,11 @@ module Text.Sass.Compilation
     -- * Compilation
     compileFile
   , compileString
+  , compileExtendedFile
+  , compileExtendedString
     -- * Error reporting
   , SassError (errorStatus)
+  , SassExtendedResult (resultString)
   , errorJson
   , errorText
   , errorMessage
@@ -16,11 +19,13 @@ module Text.Sass.Compilation
   , errorSource
   , errorLine
   , errorColumn
+  , resultIncludes
+  , resultSourcemap
   ) where
 
 import qualified Bindings.Libsass    as Lib
 import           Control.Applicative ((<$>))
-import           Control.Monad       ((>=>))
+import           Control.Monad       (forM, (>=>))
 import           Foreign
 import           Foreign.C
 import           Text.Sass.Internal
@@ -32,6 +37,17 @@ data SassError = SassError {
     errorContext :: ForeignPtr Lib.SassContext
 }
 
+-- | Represents extended result - compiled string with a list of includes and
+-- a source map.
+data SassExtendedResult = SassExtendedResult {
+    resultString  :: String, -- ^ Compiled string.
+    resultContext :: ForeignPtr Lib.SassContext
+}
+
+-- | Typeclass that allows multiple results from compilation functions.
+class SassResult a where
+    toSassResult :: ForeignPtr Lib.SassContext -> IO a
+
 instance Show SassError where
     show (SassError s _) =
         "SassError: cannot compile provided source, error status: " ++ show s
@@ -39,9 +55,8 @@ instance Show SassError where
 instance Eq SassError where
     (SassError s1 _) == (SassError s2 _) = s1 == s2
 
--- | Result of compilation.
-class SassResult a where
-    toSassResult :: ForeignPtr Lib.SassContext -> IO a
+instance Show SassExtendedResult where
+    show _ = "SassExtendedResult"
 
 instance SassResult String where
     toSassResult ptr = withForeignPtr ptr $ \ctx -> do
@@ -49,7 +64,12 @@ instance SassResult String where
         !result' <- peekCString result
         return result'
 
--- | Loads specified property from context and converts it to desired type.
+instance SassResult SassExtendedResult where
+    toSassResult ptr = do
+        str <- toSassResult ptr
+        return $ SassExtendedResult str ptr
+
+-- | Loads specified property from a context and converts it to desired type.
 loadFromError :: (Ptr Lib.SassContext -> IO a) -- ^ Accessor function.
               -> (a -> IO b) -- ^ Conversion method.
               -> SassError -- ^ Pointer to context.
@@ -57,47 +77,62 @@ loadFromError :: (Ptr Lib.SassContext -> IO a) -- ^ Accessor function.
 loadFromError get conv err = withForeignPtr ptr $ get >=> conv
     where ptr = errorContext err
 
--- | Equivalent to @'loadFromError' 'get' 'peekCString' 'err'@.
+-- | Equivalent of @'loadFromError' 'get' 'peekCString' 'err'@.
 loadStringFromError
     :: (Ptr Lib.SassContext -> IO CString) -- ^ Accessor function.
     -> SassError -- ^ Pointer to context.
     -> IO String -- ^ Result.
 loadStringFromError get = loadFromError get peekCString
 
--- | Equivalent to @'loadFromError' 'get' 'fromInteger' 'err'@.
+-- | Equivalent of @'loadFromError' 'get' 'fromInteger' 'err'@.
 loadIntFromError :: (Integral a)
                  => (Ptr Lib.SassContext -> IO a) -- ^ Accessor function.
                  -> SassError -- ^ Pointer to context.
                  -> IO Int -- ^ Result.
 loadIntFromError get = loadFromError get (return.fromIntegral)
 
--- | Loads information about error as JSON.
+-- | Loads information about an error as JSON.
 errorJson :: SassError -> IO String
 errorJson = loadStringFromError Lib.sass_context_get_error_json
 
--- | Loads error text.
+-- | Loads an error text.
 errorText :: SassError -> IO String
 errorText = loadStringFromError Lib.sass_context_get_error_text
 
--- | Loads user-friendly error message.
+-- | Loads a user-friendly error message.
 errorMessage :: SassError -> IO String
 errorMessage = loadStringFromError Lib.sass_context_get_error_message
 
--- | Loads file where problem occured.
+-- | Loads a filename where problem occured.
 errorFile :: SassError -> IO String
 errorFile = loadStringFromError Lib.sass_context_get_error_file
 
--- | Loads error source.
+-- | Loads an error source.
 errorSource :: SassError -> IO String
 errorSource = loadStringFromError Lib.sass_context_get_error_src
 
--- | Loads line in the file where problem occured.
+-- | Loads a line in the file where problem occured.
 errorLine :: SassError -> IO Int
 errorLine = loadIntFromError Lib.sass_context_get_error_line
 
--- | Loads line in the file where problem occured.
+-- | Loads a line in the file where problem occured.
 errorColumn :: SassError -> IO Int
 errorColumn = loadIntFromError Lib.sass_context_get_error_column
+
+-- | Loads a list of files that have been included during compilation.
+resultIncludes :: SassExtendedResult -> IO [String]
+resultIncludes ex = withForeignPtr (resultContext ex) $ \ctx -> do
+    lst <- Lib.sass_context_get_included_files ctx
+    len <- Lib.sass_context_get_included_files_size ctx
+    forM (arrayRange $ fromIntegral len) (peekElemOff lst >=> peekCString)
+
+-- | Loads a source map if it was generated by libsass.
+resultSourcemap :: SassExtendedResult -> IO (Maybe String)
+resultSourcemap ex = withForeignPtr (resultContext ex) $ \ctx -> do
+    cstr <- Lib.sass_context_get_source_map_string ctx
+    if cstr == nullPtr
+        then return Nothing
+        else Just <$> peekCString cstr
 
 -- | Common code for 'compileFile' and 'compileString'.
 compileInternal :: (SassResult b)
@@ -122,6 +157,29 @@ compileInternal str opts make compile finalizer = do
             result <- toSassResult fptr
             return $ Right result
 
+-- | Compiles file using specified options and returns extended result.
+compileExtendedFile :: FilePath -- ^ Path to the file.
+                    -> SassOptions -- ^ Compilation options.
+                    -> IO (Either SassError SassExtendedResult)
+                       -- ^ Error or an extended result.
+compileExtendedFile path opts = withCString path $ \cpath ->
+    compileInternal cpath opts
+        Lib.sass_make_file_context
+        Lib.sass_compile_file_context
+        Lib.p_sass_delete_file_context
+
+-- | Compiles raw Sass content using specified options and returns an extended
+-- result.
+compileExtendedString :: String -- ^ String to compile.
+                      -> SassOptions -- ^ Compilation options.
+                      -> IO (Either SassError SassExtendedResult)
+                         -- ^ Error or an extended result.
+compileExtendedString str opts = do
+    cdata <- newCString str
+    compileInternal cdata opts
+        Lib.sass_make_data_context
+        Lib.sass_compile_data_context
+        Lib.p_sass_delete_data_context
 
 -- | Compiles file using specified options.
 compileFile :: FilePath -- ^ Path to the file.
