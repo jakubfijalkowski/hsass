@@ -1,6 +1,5 @@
 -- | Helper functions. This module is internal and should not be used in
 -- production code.
-{-# LANGUAGE ViewPatterns #-}
 module Text.Sass.Utils
   (
     -- * Interoperation with C API
@@ -53,7 +52,7 @@ copyToCList :: (Num size, Enum size)
 copyToCList create convert set list = do
     let len = length list
     result <- create $ fromIntegral len
-    zipWithM_ (addToList result) [0..(fromIntegral len) - 1] list
+    zipWithM_ (addToList result) [0..fromIntegral len - 1] list
     return result
     where
         addToList lst idx = convert >=> set lst idx

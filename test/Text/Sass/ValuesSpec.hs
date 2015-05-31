@@ -36,53 +36,54 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-    it "should serialize boolean true" $ do
+    it "should serialize boolean true" $
         testSerialize (SassBool True) "true"
 
-    it "should serialize boolean false" $ do
+    it "should serialize boolean false" $
         testSerialize (SassBool False) "false"
 
-    it "should serialize number" $ do
+    it "should serialize number" $
         testSerialize (SassNumber 1 "px") "1px"
 
-    it "should serialize color" $ do
+    it "should serialize color" $
         testSerialize (SassColor 1 2 3 0.5) "rgba(1, 2, 3, 0.5)"
 
-    it "should serialize string" $ do
+    it "should serialize string" $
         testSerialize (SassString "abcd") "abcd"
 
-    it "should serialize list" $ do
+    it "should serialize list" $
         testSerialize
-            (SassList [SassNumber 1 "px", SassNumber 2 "px"] SassSeparatorComma)
+            (SassList [SassNumber 1 "px", SassNumber 2 "px"]
+             SassSeparatorComma)
             "1px, 2px"
 
-    it "should serialize map" $ do
+    it "should serialize map" $
         testSerialize
             (SassMap [ (SassString "a", SassString "b")
                      , (SassNumber 1 "", SassBool True)])
             "(a: b, 1: true)"
 
-    it "should deserialize boolean true" $ do
+    it "should deserialize boolean true" $
         testDeserialize (SassBool True) "true"
 
-    it "should deserialize boolean false" $ do
+    it "should deserialize boolean false" $
         testDeserialize (SassBool False) "false"
 
-    it "should deserialize number" $ do
+    it "should deserialize number" $
         testDeserialize (SassNumber 1 "px") "1px"
 
-    it "should deserialize color" $ do
+    it "should deserialize color" $
         testDeserialize (SassColor 1 2 3 0.5) "rgba(1, 2, 3, 0.5)"
 
-    it "should deserialize string" $ do
+    it "should deserialize string" $
         testDeserialize (SassString "abcd") "abcd"
 
-    it "should deserialize list" $ do
+    it "should deserialize list" $
         testDeserialize
             (SassList [SassNumber 1 "px", SassNumber 2 "px"] SassSeparatorSpace)
             "1px 2px"
 
-    it "should deserialize map" $ do
+    it "should deserialize map" $
         testDeserialize
             (SassMap [ (SassString "a", SassString "b")
                      , (SassNumber 1 "", SassBool True)])

@@ -31,7 +31,7 @@ toNativeValue SassNull = Lib.sass_make_null
 toNativeValue (SassWarning str) = withCString str Lib.sass_make_warning
 toNativeValue (SassError str) = withCString str Lib.sass_make_error
 toNativeValue (SassList lst sep') =
-    copyToCList (flip Lib.sass_make_list sep) toNativeValue
+    copyToCList (`Lib.sass_make_list` sep) toNativeValue
         Lib.sass_list_set_value lst
     where sep = fromIntegral $ fromEnum sep'
 
@@ -68,9 +68,9 @@ fromNativeValue' Lib.SassColor ptr = do
 fromNativeValue' Lib.SassString ptr =
     SassString <$> (Lib.sass_string_get_value ptr >>= peekCString)
 fromNativeValue' Lib.SassNull _ = return SassNull
-fromNativeValue' Lib.SassWarning ptr = do
+fromNativeValue' Lib.SassWarning ptr =
     SassWarning <$> (Lib.sass_warning_get_message ptr >>= peekCString)
-fromNativeValue' Lib.SassError ptr = do
+fromNativeValue' Lib.SassError ptr =
     SassError <$> (Lib.sass_error_get_message ptr >>= peekCString)
 fromNativeValue' Lib.SassList ptr = do
     len <- Lib.sass_list_get_length ptr

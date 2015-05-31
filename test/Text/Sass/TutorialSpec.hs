@@ -16,8 +16,7 @@ warn :: MVar String -> SassValue -> IO SassValue
 warn m (SassList (SassString s:_) _) = do
     putMVar m s
     return $ SassString "warn!"
-warn _ _ = do
-    return $ SassString "invalid arguments"
+warn _ _ = return $ SassString "invalid arguments"
 
 warnSig :: MVar String -> SassFunction
 warnSig = SassFunction "@warn" . warn
@@ -44,12 +43,14 @@ spec :: Spec
 spec = do
     describe "max3" $ do
         it "should return max value" $ do
-            let vals = SassList [SassNumber 1 "", SassNumber 2 "", SassNumber 3 ""] SassSeparatorSpace
+            let vals = SassList [SassNumber 1 "", SassNumber 2 "",
+                                 SassNumber 3 ""] SassSeparatorSpace
             SassNumber v _ <- max3 vals
             v `shouldBe` 3
 
         it "should return error on invalid aruments" $ do
-            let vals = SassList [SassString "", SassString "", SassNumber 3 ""] SassSeparatorSpace
+            let vals = SassList [SassString "", SassString "",
+                                 SassNumber 3 ""] SassSeparatorSpace
             SassError e <- max3 vals
             e `shouldBe` "invalid arguments"
 
@@ -58,14 +59,14 @@ spec = do
             compileString "foo { margin: max3(1px, 2px, 3px); }" opts
                 `shouldReturn` Right "foo {\n  margin: 3px; }\n"
 
-    describe "warn" $ do
+    describe "warn" $
         it "should call warn on @warn statement" $ do
             msg <- newEmptyMVar
             let opts = def { sassFunctions = Just [warnSig msg] }
             _ <- compileString "@warn \"message\";" opts
             tryTakeMVar msg `shouldReturn` Just "message"
 
-    describe "Headers" $ do
+    describe "Headers" $
         it "should inject header into file" $ do
             let opts = def {
                 sassHeaders = Just [headerSig]
@@ -74,7 +75,7 @@ spec = do
             compileString "foo { prop: $file; }" opts `shouldReturn`
                 Right "foo {\n  prop: path; }\n"
 
-    describe "Importers" $ do
+    describe "Importers" $
         it "should inject import with higher priority" $ do
             let opts = def { sassImporters = Just importerSigs }
             compileString "@import \"file\";\nfoo { prop: $file; }" opts

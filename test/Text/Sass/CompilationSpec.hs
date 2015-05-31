@@ -17,7 +17,7 @@ spec = do
     describe "Error reporting" errorReportingSpec
 
 compilationSpec = do
-    it "should compile simple source" $ do
+    it "should compile simple source" $
         compileString "foo { margin: 21px * 2; }" def `shouldReturn`
             Right "foo {\n  margin: 42px; }\n"
 
@@ -26,7 +26,7 @@ compilationSpec = do
         compileString "foo { margin: 21px * 2; }" opts `shouldReturn`
             Right "foo{margin:42px}\n"
 
-    it "should compile file" $ do
+    it "should compile file" $
         withSystemTempFile "styles.sass" $ \p h -> do
             hPutStr h "foo { margin: 21px * 2; }"
             hClose h
@@ -40,10 +40,10 @@ compilationSpec = do
             compileFile p opts `shouldReturn` Right "foo{margin:42px}\n"
 
 errorReportingSpec = do
-    it "string compilation should report error on invalid code" $ do
+    it "string compilation should report error on invalid code" $
         compileString "inv mark" def `returnShouldSatisfy` isLeft
 
-    it "file compilation should report error on invalid code" $ do
+    it "file compilation should report error on invalid code" $
         withSystemTempFile "styles.sass" $ \p h -> do
             hPutStr h "!@# !@##  ## #"
             hClose h

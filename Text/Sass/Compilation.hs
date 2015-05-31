@@ -45,9 +45,10 @@ loadFromError get conv err = withForeignPtr ptr $ get >=> conv
     where ptr = errorContext err
 
 -- | Equivalent to @'loadFromError' 'get' 'peekCString' 'err'@.
-loadStringFromError :: (Ptr Lib.SassContext -> IO CString) -- ^ Accessor function.
-                    -> SassError -- ^ Pointer to context.
-                    -> IO String -- ^ Result.
+loadStringFromError
+    :: (Ptr Lib.SassContext -> IO CString) -- ^ Accessor function.
+    -> SassError -- ^ Pointer to context.
+    -> IO String -- ^ Result.
 loadStringFromError get = loadFromError get peekCString
 
 -- | Equivalent to @'loadFromError' 'get' 'fromInteger' 'err'@.

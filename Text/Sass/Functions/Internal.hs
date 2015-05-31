@@ -121,4 +121,4 @@ makeNativeImporterList =
 -- Libsass does not provide function to free this kind of objects, but we
 -- provide it just in case.
 freeNativeImporterList :: Lib.SassImporterList -> IO ()
-freeNativeImporterList lst = (loopCList freeNativeImporter lst) >> free lst
+freeNativeImporterList lst = loopCList freeNativeImporter lst >> free lst

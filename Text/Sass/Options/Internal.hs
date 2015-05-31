@@ -55,7 +55,7 @@ withFunctions :: SassOptions -- ^ Options.
               -> IO a -- ^ Action.
               -> IO a -- ^ Result
 withFunctions opt ptr action =
-    case (sassFunctions opt) of
+    case sassFunctions opt of
         Nothing -> action
         Just lst -> do
             nativeFnList <- makeNativeFunctionList lst
