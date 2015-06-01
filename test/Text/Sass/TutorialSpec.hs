@@ -63,7 +63,7 @@ spec = do
         it "should call warn on @warn statement" $ do
             msg <- newEmptyMVar
             let opts = def { sassFunctions = Just [warnSig msg] }
-            _ <- compileString "@warn \"message\";" opts
+            _ <- compileString "@warn \"message\";" opts :: StringResult
             tryTakeMVar msg `shouldReturn` Just "message"
 
     describe "Headers" $

@@ -7,11 +7,12 @@ module Text.Sass.Compilation
     -- * Compilation
     compileFile
   , compileString
-  , compileExtendedFile
-  , compileExtendedString
+    -- * Types
+  , SassExtendedResult (resultString)
+  , StringResult
+  , ExtendedResult
     -- * Error reporting
   , SassError (errorStatus)
-  , SassExtendedResult (resultString)
   , errorJson
   , errorText
   , errorMessage
@@ -44,7 +45,18 @@ data SassExtendedResult = SassExtendedResult {
     resultContext :: ForeignPtr Lib.SassContext
 }
 
+-- | Result of compilation - 'Either' 'SassError' or a compiled string. 
+type StringResult = IO (Either SassError String)
+
+-- | Result of compilation - 'Either' 'SassError' or extended results - a
+-- compiled string with a list of included files and a source map.
+type ExtendedResult = IO (Either SassError SassExtendedResult)
+
 -- | Typeclass that allows multiple results from compilation functions.
+--
+-- Currently, only two types are supported - 'String' and 'SassExtendedResult'.
+-- The first provides only a compiled string, the latter one gives access to a
+-- list of included files and a source map (if available).
 class SassResult a where
     toSassResult :: ForeignPtr Lib.SassContext -> IO a
 
@@ -58,12 +70,14 @@ instance Eq SassError where
 instance Show SassExtendedResult where
     show _ = "SassExtendedResult"
 
+-- | Only compiled code.
 instance SassResult String where
     toSassResult ptr = withForeignPtr ptr $ \ctx -> do
         result <- Lib.sass_context_get_output_string ctx
         !result' <- peekCString result
         return result'
 
+-- | Compiled code with includes and a source map.
 instance SassResult SassExtendedResult where
     toSassResult ptr = do
         str <- toSassResult ptr
@@ -157,34 +171,11 @@ compileInternal str opts make compile finalizer = do
             result <- toSassResult fptr
             return $ Right result
 
--- | Compiles file using specified options and returns extended result.
-compileExtendedFile :: FilePath -- ^ Path to the file.
-                    -> SassOptions -- ^ Compilation options.
-                    -> IO (Either SassError SassExtendedResult)
-                       -- ^ Error or an extended result.
-compileExtendedFile path opts = withCString path $ \cpath ->
-    compileInternal cpath opts
-        Lib.sass_make_file_context
-        Lib.sass_compile_file_context
-        Lib.p_sass_delete_file_context
-
--- | Compiles raw Sass content using specified options and returns an extended
--- result.
-compileExtendedString :: String -- ^ String to compile.
-                      -> SassOptions -- ^ Compilation options.
-                      -> IO (Either SassError SassExtendedResult)
-                         -- ^ Error or an extended result.
-compileExtendedString str opts = do
-    cdata <- newCString str
-    compileInternal cdata opts
-        Lib.sass_make_data_context
-        Lib.sass_compile_data_context
-        Lib.p_sass_delete_data_context
-
--- | Compiles file using specified options.
-compileFile :: FilePath -- ^ Path to the file.
+-- | Compiles a file using specified options.
+compileFile :: SassResult a
+            => FilePath -- ^ Path to the file.
             -> SassOptions -- ^ Compilation options.
-            -> IO (Either SassError String) -- ^ Error or output string.
+            -> IO (Either SassError a) -- ^ Error or output string.
 compileFile path opts = withCString path $ \cpath ->
     compileInternal cpath opts
         Lib.sass_make_file_context
@@ -192,9 +183,10 @@ compileFile path opts = withCString path $ \cpath ->
         Lib.p_sass_delete_file_context
 
 -- | Compiles raw Sass content using specified options.
-compileString :: String -- ^ String to compile.
+compileString :: SassResult a
+              => String -- ^ String to compile.
               -> SassOptions -- ^ Compilation options.
-              -> IO (Either SassError String) -- ^ Error or output string.
+              -> IO (Either SassError a) -- ^ Error or output string.
 compileString str opts = do
     cdata <- newCString str
     compileInternal cdata opts
