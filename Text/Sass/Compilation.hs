@@ -7,12 +7,16 @@ module Text.Sass.Compilation
     -- * Compilation
     compileFile
   , compileString
-    -- * Types
-  , SassExtendedResult (resultString)
+    -- * Results
+  , SassExtendedResult
   , StringResult
   , ExtendedResult
+  , resultString
+  , resultIncludes
+  , resultSourcemap
     -- * Error reporting
-  , SassError (errorStatus)
+  , SassError
+  , errorStatus
   , errorJson
   , errorText
   , errorMessage
@@ -20,8 +24,6 @@ module Text.Sass.Compilation
   , errorSource
   , errorLine
   , errorColumn
-  , resultIncludes
-  , resultSourcemap
   ) where
 
 import qualified Bindings.Libsass    as Lib
@@ -40,16 +42,22 @@ data SassError = SassError {
 
 -- | Represents extended result - compiled string with a list of includes and
 -- a source map.
+--
+-- Subject to name change in future versions.
 data SassExtendedResult = SassExtendedResult {
     resultString  :: String, -- ^ Compiled string.
     resultContext :: ForeignPtr Lib.SassContext
 }
 
--- | Result of compilation - 'Either' 'SassError' or a compiled string. 
+-- | Result of compilation - 'Either' 'SassError' or a compiled string.
+--
+-- Subject to name change in future versions.
 type StringResult = IO (Either SassError String)
 
 -- | Result of compilation - 'Either' 'SassError' or extended results - a
 -- compiled string with a list of included files and a source map.
+--
+-- Subject to name change in future versions.
 type ExtendedResult = IO (Either SassError SassExtendedResult)
 
 -- | Typeclass that allows multiple results from compilation functions.
