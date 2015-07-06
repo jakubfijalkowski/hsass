@@ -5,7 +5,7 @@ import           System.IO.Temp
 import           Test.Hspec
 import           Text.Sass
 
-import           Data.ByteString.Char8  (ByteString, pack)
+import           Data.ByteString.Char8  (pack)
 import           Data.Either            (isLeft, isRight)
 import           Data.Maybe             (isJust)
 import           Text.Sass.TestingUtils
@@ -59,25 +59,31 @@ extendedResultSpec = do
         let Right res' = res
         resultString res' `shouldBe` "foo {\n  margin: 42px; }\n"
 
+    it "should compile simple source as a bytestring" $ do
+        res <- compileString "foo { margin: 21px * 2; }" def
+        res `shouldSatisfy` isRight
+        let Right res' = res
+        resultString res' `shouldBe` (pack "foo {\n  margin: 42px; }\n")
+
     it "should report correct includes when available" $ do
         let opts = def { sassImporters = Just importers }
-        Right res <- compileString "@import '_abc';" opts
+        Right res <- compileString "@import '_abc';" opts :: ExtendedResult
         resultIncludes res `shouldReturn` [ "_abc" ]
 
     it "should report no includes when unavailable" $ do
-        Right res <- compileString "foo { margin: 1px; }" def
+        Right res <- compileString "foo { margin: 1px; }" def :: ExtendedResult
         resultIncludes res `shouldReturn` [ ]
 
     it "should retrieve source map if available" $ do
         let opts = def { sassSourceMapFile = Just "abc.css" }
-        Right res <- compileString "foo { margin: 1px; }" opts
+        Right res <- compileString "foo { margin: 1px; }" opts :: ExtendedResult
         m <- resultSourcemap res
         m `shouldSatisfy` isJust
         let Just m' = m
         m' `shouldSatisfy` (not . null)
 
     it "should return Nothing is source map if not available" $ do
-        Right res <- compileString "foo { margin: 1px; }" def
+        Right res <- compileString "foo { margin: 1px; }" def :: ExtendedResult
         resultSourcemap res `shouldReturn` Nothing
 
 errorReportingSpec = do
