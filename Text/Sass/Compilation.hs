@@ -27,6 +27,7 @@ module Text.Sass.Compilation
   ) where
 
 import qualified Bindings.Libsass    as Lib
+import           Data.ByteString     (ByteString, packCString)
 import           Control.Applicative ((<$>))
 import           Control.Monad       (forM, (>=>))
 import           Foreign
@@ -83,6 +84,13 @@ instance SassResult String where
     toSassResult ptr = withForeignPtr ptr $ \ctx -> do
         result <- Lib.sass_context_get_output_string ctx
         !result' <- peekCString result
+        return result'
+
+-- | Only compiled code (UTF-8 encoding).
+instance SassResult ByteString where
+    toSassResult ptr = withForeignPtr ptr $ \ctx -> do
+        result <- Lib.sass_context_get_output_string ctx
+        !result' <- packCString result
         return result'
 
 -- | Compiled code with includes and a source map.

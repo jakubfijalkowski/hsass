@@ -5,6 +5,7 @@ import           System.IO.Temp
 import           Test.Hspec
 import           Text.Sass
 
+import           Data.ByteString.Char8  (ByteString, pack)
 import           Data.Either            (isLeft, isRight)
 import           Data.Maybe             (isJust)
 import           Text.Sass.TestingUtils
@@ -28,6 +29,10 @@ compilationSpec = do
     it "should compile simple source" $
         compileString "foo { margin: 21px * 2; }" def `shouldReturn`
             Right "foo {\n  margin: 42px; }\n"
+
+    it "should compile simple source as a bytestring" $
+        compileString "foo { margin: 21px * 2; }" def `shouldReturn`
+            Right (pack "foo {\n  margin: 42px; }\n")
 
     it "should respect options" $ do
         let opts = def { sassOutputStyle = SassStyleCompressed }
