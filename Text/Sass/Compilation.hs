@@ -11,6 +11,7 @@ module Text.Sass.Compilation
   , SassExtendedResult
   , StringResult
   , ExtendedResult
+  , ExtendedResultBS
   , resultString
   , resultIncludes
   , resultSourcemap

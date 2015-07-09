@@ -12,12 +12,15 @@ module Text.Sass.Utils
   , arrayRange
   ) where
 
-import           Control.Monad.Loops        (whileM_)
-import           Control.Monad.State.Strict
-import           Data.List                  (intercalate)
+import           Control.Monad                    (zipWithM_, (>=>))
+import           Control.Monad.IO.Class
+import           Control.Monad.Loops              (whileM_)
+import           Control.Monad.Trans.Class
+import           Control.Monad.Trans.State.Strict
+import           Data.List                        (intercalate)
 import           Foreign
 import           Foreign.C
-import           System.FilePath            (searchPathSeparator)
+import           System.FilePath                  (searchPathSeparator)
 
 -- | 'withOptionalCString' @str action@, if @str@ is 'Nothing', @action@ is not
 -- invoked, otherwise behaves like 'withCString'.
