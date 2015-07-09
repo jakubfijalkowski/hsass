@@ -1,6 +1,7 @@
 -- | Copying 'SassOptions' into native context. This module is internal and
 -- should not be considered stable.
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP          #-}
 module Text.Sass.Options.Internal
   (
     copyOptionsToNative
@@ -8,7 +9,9 @@ module Text.Sass.Options.Internal
   ) where
 
 import qualified Bindings.Libsass             as Lib
+#if !MIN_VERSION_base(4,8,0)
 import           Control.Applicative          ((<$>))
+#endif
 import           Control.Monad                ((>=>))
 import           Foreign
 import           Foreign.C

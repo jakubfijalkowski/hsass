@@ -1,5 +1,6 @@
 -- | Conversion of 'SassValue' or list of 'SassValue's into native
 -- representation. This module is internal and should not be considered stable.
+{-# LANGUAGE CPP #-}
 module Text.Sass.Values.Internal
   (
     toNativeValue
@@ -9,7 +10,9 @@ module Text.Sass.Values.Internal
   ) where
 
 import qualified Bindings.Libsass    as Lib
+#if !MIN_VERSION_base(4,8,0)
 import           Control.Applicative ((<$>))
+#endif
 import           Control.Monad       (forM, (>=>))
 import           Foreign
 import           Foreign.C

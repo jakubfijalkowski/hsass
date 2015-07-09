@@ -1,5 +1,6 @@
 -- | Compilation of sass source or sass files.
 {-# LANGUAGE BangPatterns         #-}
+{-# LANGUAGE CPP                  #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 module Text.Sass.Compilation
@@ -29,7 +30,9 @@ module Text.Sass.Compilation
 
 import qualified Bindings.Libsass    as Lib
 import           Data.ByteString     (ByteString, packCString)
+#if !MIN_VERSION_base(4,8,0)
 import           Control.Applicative ((<$>))
+#endif
 import           Control.Monad       (forM, (>=>))
 import           Foreign
 import           Foreign.C
