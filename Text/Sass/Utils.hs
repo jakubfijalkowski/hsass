@@ -1,5 +1,6 @@
 -- | Helper functions. This module is internal and should not be used in
 -- production code.
+{-# LANGUAGE CPP #-}
 module Text.Sass.Utils
   (
     -- * Interoperation with C API
@@ -21,6 +22,14 @@ import           Data.List                        (intercalate)
 import           Foreign
 import           Foreign.C
 import           System.FilePath                  (searchPathSeparator)
+
+-- Fix for transformers-0.3.0.0 (used by lts-2.17 in stack).
+#if !MIN_VERSION_transformers(0,4,0)
+modify' :: (Monad m) => (s -> s) -> StateT s m ()
+modify' f = do
+    s <- get
+    put $! f s
+#endif
 
 -- | 'withOptionalCString' @str action@, if @str@ is 'Nothing', @action@ is not
 -- invoked, otherwise behaves like 'withCString'.
