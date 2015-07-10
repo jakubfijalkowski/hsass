@@ -1,5 +1,8 @@
 hSass
 =====
+[![Build Status](https://travis-ci.org/jakubfijalkowski/hsass.svg?branch=master)](https://travis-ci.org/jakubfijalkowski/hsass)
+[![Hackage](https://img.shields.io/hackage/v/hsass.svg)](http://hackage.haskell.org/package/hsass)
+[![Hackage deps](https://img.shields.io/hackage-deps/v/hsass.svg)](http://packdeps.haskellers.com/reverse/hsass)
 
 hSass is a Haskell wrapper over [hLibsass]. It gives you a higher-level API for compilation of [Sass] files and easy integration into Haskell applications. It is meant to be simple in use yet provide as much functionality as it can.
 
