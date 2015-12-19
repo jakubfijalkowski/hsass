@@ -1,43 +1,33 @@
-# Based on https://github.com/hvr/multi-ghc-travis
 language: c
-
 sudo: false
 
 env:
- - CABALVER=1.18 GHCVER=7.8.4
- - CABALVER=1.22 GHCVER=7.10.1
- - CABALVER=head GHCVER=head
+  - STACK_YAML=stack-lts-2.yaml   UPDATE_NIGHTLY=NO
+  - STACK_YAML=stack-nightly.yaml UPDATE_NIGHTLY=YES
+  - STACK_YAML=stack.yaml         UPDATE_NIGHTLY=NO
 
 addons:
   apt:
-    sources:
-     - hvr-ghc
     packages:
-     - cabal-install-1.22
-     - ghc-7.8.4
-     - cabal-install-1.18
-     - ghc-7.10.1
-     - cabal-install-head
-     - ghc-head
+      - libgmp-dev
 
 matrix:
   allow_failures:
-   - env: CABALVER=head GHCVER=head
+    - env: STACK_YAML=stack-nightly.yaml UPDATE_NIGHTLY=YES
+
+cache:
+  directories:
+    - $HOME/.stack/
 
 before_install:
- - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
+  - mkdir -p ~/.local/bin
+  - export PATH=~/.local/bin:$PATH
+  - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
 
 install:
- - cabal --version
- - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
- - travis_retry cabal update
- - cabal install --only-dependencies --enable-tests
+  - ./tools/update_nightly.sh
+  - stack setup --no-terminal
+  - stack ghc -- --version
 
 script:
- - cabal configure --enable-tests -v2
- - cabal build
- - cabal test --show-details=always
- - cabal check
- - cabal sdist
- - SRC_TGZ=$(cabal info . | awk '{print $2;exit}').tar.gz &&
-   (cd dist && cabal install --force-reinstalls "$SRC_TGZ")
+  - stack --no-terminal test
