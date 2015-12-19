@@ -16,3 +16,4 @@ cabal.sandbox.config
 *.hp
 *.sublime-*
 tags
+.stack-work/

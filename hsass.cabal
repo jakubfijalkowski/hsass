@@ -61,6 +61,12 @@ library
 test-suite test
   hs-source-dirs:      test
   main-is:             Spec.hs
+  other-modules:
+      Text.Sass.CompilationSpec
+    , Text.Sass.FunctionsSpec
+    , Text.Sass.TestingUtils
+    , Text.Sass.TutorialSpec
+    , Text.Sass.ValuesSpec
   type:                exitcode-stdio-1.0
   ghc-options:         -Wall
   build-depends:
