@@ -44,10 +44,11 @@ library
     , Text.Sass.Functions.Internal
     , Text.Sass.Options.Internal
     , Text.Sass.Values.Internal
+    , Text.Sass.Values.Utils
     , Text.Sass.Utils
   build-depends:
       base               >= 4.7 && < 5
-    , hlibsass           >= 0.1.1
+    , hlibsass           >= 0.1.5
     , bytestring         >= 0.10.0
     , data-default-class
     , filepath           >= 1.0

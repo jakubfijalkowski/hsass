@@ -103,7 +103,7 @@ errorReportingSpec = do
 
     it "should contain column" $ do
         (Left r) <- compileString "body { !! }" def :: StringResult
-        errorColumn r `shouldReturn` 6
+        errorColumn r `shouldReturn` 7
 
     it "should contain description" $ do
         (Left r) <- compileString "body { !! }" def :: StringResult

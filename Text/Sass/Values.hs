@@ -28,4 +28,4 @@ data SassValue = SassBool Bool -- ^ Boolean value.
                 | SassNull -- ^ Null value.
                 | SassWarning String -- ^ Warning with message.
                 | SassError String -- ^ Error with message.
-                deriving (Eq)
+                deriving (Eq, Show)

@@ -1,7 +1,9 @@
+{-# LANGUAGE StandaloneDeriving #-}
 module Text.Sass.ValuesSpec where
 
 import           Test.Hspec
 import           Text.Sass
+import           Text.Sass.Values.Utils
 
 optsWithVal :: SassValue -> SassOptions
 optsWithVal v = def {
@@ -57,11 +59,12 @@ spec = do
              SassSeparatorComma)
             "1px, 2px"
 
-    it "should serialize map" $
-        testSerialize
-            (SassMap [ (SassString "a", SassString "b")
-                     , (SassNumber 1 "", SassBool True)])
-            "(a: b, 1: true)"
+    it "should serialize map" $ do
+        let map = (SassMap [ (SassString "a", SassString "b")
+                  , (SassNumber 1 "", SassBool True)])
+        let opts = optsWithVal map
+        result <- compileString "@each $key, $val in foo() { #{$key} { val: #{$val} } }" opts
+        result `shouldBe` Right "a {\n  val: b; }\n\n1 {\n  val: true; }\n"
 
     it "should deserialize boolean true" $
         testDeserialize (SassBool True) "true"
@@ -84,7 +87,9 @@ spec = do
             "1px 2px"
 
     it "should deserialize map" $
-        testDeserialize
-            (SassMap [ (SassString "a", SassString "b")
-                     , (SassNumber 1 "", SassBool True)])
-            "(a: b, 1: true)"
+        pendingWith "Libsass does not allow maps in CSS any more"
+
+    it "should correctly combine two SassValues" $ do
+        let val1 = SassNumber 1.0 ""
+            val2 = SassNumber 2.0 ""
+        combineSassValues SassAdd val1 val2 `shouldBe` SassNumber 3.0 ""
