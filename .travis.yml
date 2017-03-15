@@ -3,6 +3,9 @@ sudo: false
 
 env:
   - STACK_YAML=stack-lts-2.yaml   UPDATE_NIGHTLY=NO
+  - STACK_YAML=stack-lts-3.yaml   UPDATE_NIGHTLY=NO
+  - STACK_YAML=stack-lts-6.yaml   UPDATE_NIGHTLY=NO
+  - STACK_YAML=stack-lts-7.yaml   UPDATE_NIGHTLY=NO
   - STACK_YAML=stack-nightly.yaml UPDATE_NIGHTLY=YES
   - STACK_YAML=stack.yaml         UPDATE_NIGHTLY=NO
 
