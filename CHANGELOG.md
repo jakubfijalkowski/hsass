@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.4.1] - 2017-03-19
+### Fixed
+- Bump `hlibsass` version to 0.1.5.2 (fixes build problem on Cabal 1.24 & Stack
+  1.4)
+
 ## [0.4.0] - 2015-12-19
 ### Added
 - Support for combining `SassValues` (new in hlibsass 0.1.5)
