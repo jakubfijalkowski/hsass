@@ -60,9 +60,9 @@ spec = do
             "1px, 2px"
 
     it "should serialize map" $ do
-        let map = (SassMap [ (SassString "a", SassString "b")
-                  , (SassNumber 1 "", SassBool True)])
-        let opts = optsWithVal map
+        let sassMap = (SassMap [ (SassString "a", SassString "b")
+                       , (SassNumber 1 "", SassBool True)])
+        let opts = optsWithVal sassMap
         result <- compileString "@each $key, $val in foo() { #{$key} { val: #{$val} } }" opts
         result `shouldBe` Right "a {\n  val: b; }\n\n1 {\n  val: true; }\n"
 
