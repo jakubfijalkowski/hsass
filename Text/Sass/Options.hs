@@ -2,6 +2,7 @@
 module Text.Sass.Options
   (
     SassOptions (..)
+  , defaultSassOptions
   , Lib.SassOutputStyle (..)
   ) where
 
@@ -55,24 +56,35 @@ data SassOptions = SassOptions {
   , sassImporters         :: Maybe [SassImporter]
 }
 
+-- | The default 'SassOptions':
+--
+-- * 'sassPrecision' = 5
+-- * 'sassOutputStyle' = 'Lib.SassStyleNested'
+-- * 'sassIndent' = two spaces
+-- * 'sassLinefeed' = @"\\n"@
+-- * All other fields default to 'False' or 'Nothing'.
+defaultSassOptions :: SassOptions
+defaultSassOptions = SassOptions
+  { sassPrecision         = 5
+  , sassOutputStyle       = Lib.SassStyleNested
+  , sassSourceComments    = False
+  , sassSourceMapEmbed    = False
+  , sassSourceMapContents = False
+  , sassOmitSourceMapUrl  = False
+  , sassIsIndentedSyntax  = False
+  , sassIndent            = "  "
+  , sassLinefeed          = "\n"
+  , sassInputPath         = Nothing
+  , sassOutputPath        = Nothing
+  , sassPluginPaths       = Nothing
+  , sassIncludePaths      = Nothing
+  , sassSourceMapFile     = Nothing
+  , sassSourceMapRoot     = Nothing
+  , sassFunctions         = Nothing
+  , sassHeaders           = Nothing
+  , sassImporters         = Nothing
+  }
+
+-- | 'def' = 'defaultSassOptions'
 instance Default SassOptions where
-    def = SassOptions {
-        sassPrecision         = 5
-      , sassOutputStyle       = Lib.SassStyleNested
-      , sassSourceComments    = False
-      , sassSourceMapEmbed    = False
-      , sassSourceMapContents = False
-      , sassOmitSourceMapUrl  = False
-      , sassIsIndentedSyntax  = False
-      , sassIndent            = "  "
-      , sassLinefeed          = "\n"
-      , sassInputPath         = Nothing
-      , sassOutputPath        = Nothing
-      , sassPluginPaths       = Nothing
-      , sassIncludePaths      = Nothing
-      , sassSourceMapFile     = Nothing
-      , sassSourceMapRoot     = Nothing
-      , sassFunctions         = Nothing
-      , sassHeaders           = Nothing
-      , sassImporters         = Nothing
-    }
+    def = defaultSassOptions
