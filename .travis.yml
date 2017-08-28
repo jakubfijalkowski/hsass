@@ -6,6 +6,7 @@ env:
   - STACK_YAML=stack-lts-3.yaml   UPDATE_NIGHTLY=NO
   - STACK_YAML=stack-lts-6.yaml   UPDATE_NIGHTLY=NO
   - STACK_YAML=stack-lts-7.yaml   UPDATE_NIGHTLY=NO
+  - STACK_YAML=stack-lts-8.yaml   UPDATE_NIGHTLY=NO
   - STACK_YAML=stack-nightly.yaml UPDATE_NIGHTLY=YES
   - STACK_YAML=stack.yaml         UPDATE_NIGHTLY=NO
 
