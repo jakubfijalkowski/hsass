@@ -24,14 +24,14 @@ warnSig = SassFunction "@warn" . warn
 header :: String -> IO [SassImport]
 header src = return [makeSourceImport $ "$file: " ++ src ++ ";"]
 
-headerSig :: SassImporter
-headerSig = SassImporter 1 header
+headerSig :: SassHeader
+headerSig = SassHeader 1 header
 
-importer1 :: String -> IO [SassImport]
-importer1 src = return [makeSourceImport $ "$file: " ++ src ++ "1;"]
+importer1 :: String -> String -> IO [SassImport]
+importer1 src _ = return [makeSourceImport $ "$file: " ++ src ++ "1;"]
 
-importer2 :: String -> IO [SassImport]
-importer2 src = return [makeSourceImport $ "$file: " ++ src ++ "2;"]
+importer2 :: String -> String -> IO [SassImport]
+importer2 src _ = return [makeSourceImport $ "$file: " ++ src ++ "2;"]
 
 importerSigs :: [SassImporter]
 importerSigs = [SassImporter 0.5 importer1, SassImporter 1 importer2]

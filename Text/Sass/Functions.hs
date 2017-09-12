@@ -8,6 +8,8 @@ module Text.Sass.Functions
   , SassImport (..)
   , SassImporterType
   , SassImporter (..)
+  , SassHeaderType
+  , SassHeader (..)
   , makeSourceImport
   , makePathImport
   ) where
@@ -40,20 +42,32 @@ data SassImport = SassImport {
     importSourceMap :: Maybe String    -- ^ Source map of the import.
 }
 
--- | Type of the function that acts like importer/header.
+-- | Type of the function that acts like an importer.
 --
--- You may return empty list in order to tell libsass to handle the import by
--- itself or not insert any header.
+-- You may return the empty list in order to tell libsass to handle the import by
+-- itself.
 type SassImporterType =
        String
-       -- ^ Path to the import that needs to be loaded or file that is being
-       -- processed when used as a header.
+       -- ^ Path to the import that needs to be loaded.
+    -> String
+       -- ^ Absolute path to the importing file.
     -> IO [SassImport] -- ^ Imports.
 
 -- | Description of the importer.
 data SassImporter = SassImporter {
     importerPriority :: Double           -- ^ Priority of the importer.
   , importerFunction :: SassImporterType -- ^ Main function.
+}
+
+-- | Type of the function that acts like a header.
+type SassHeaderType =
+       String -- ^ Absolute path to the file being processed.
+    -> IO [SassImport] -- ^ Imports.
+
+-- | Description of the header.
+data SassHeader = SassHeader {
+    headerPriority :: Double -- ^ Priority of the header.
+  , headerFunction :: SassHeaderType -- ^ Main function.
 }
 
 -- | 'makeSourceImport' @s@ is equivalent to 'SassImport'

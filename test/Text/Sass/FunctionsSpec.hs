@@ -1,7 +1,7 @@
 module Text.Sass.FunctionsSpec where
 
 import           Test.Hspec
-import           Text.Sass
+import           Text.Sass  hiding (headerFunction)
 
 fooFunction :: SassValue -> IO SassValue
 fooFunction _ = return $ SassNumber 1 "px"
@@ -25,12 +25,12 @@ altInclContent = "b {\n  margin: 5px; }\n"
 headerFunction :: String -> IO [SassImport]
 headerFunction _ = return [makeSourceImport inclContent]
 
-headers :: [SassImporter]
-headers = [SassImporter 1 headerFunction]
+headers :: [SassHeader]
+headers = [SassHeader 1 headerFunction]
 
-importFunction :: String -> IO [SassImport]
-importFunction "_imp" = return [makeSourceImport inclContent]
-importFunction _      = return [makeSourceImport altInclContent]
+importFunction :: String -> String -> IO [SassImport]
+importFunction "_imp" _ = return [makeSourceImport inclContent]
+importFunction _      _ = return [makeSourceImport altInclContent]
 
 importers :: [SassImporter]
 importers = [SassImporter 1 importFunction]

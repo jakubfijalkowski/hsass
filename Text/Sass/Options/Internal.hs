@@ -15,6 +15,7 @@ import           Control.Applicative          ((<$>))
 import           Control.Monad                ((>=>))
 import           Foreign
 import           Foreign.C
+import           Text.Sass.Functions
 import           Text.Sass.Functions.Internal
 import           Text.Sass.Options
 import           Text.Sass.Utils
@@ -45,11 +46,15 @@ copyOptionsToNative opt ptr = do
     withOptionalCString (sassSourceMapRoot opt)
         (Lib.sass_option_set_source_map_root ptr)
     maybe (return ())
-        (makeNativeImporterList >=> Lib.sass_option_set_c_headers ptr)
+        (makeNativeImporterList . fmap fromHeader
+         >=> Lib.sass_option_set_c_headers ptr)
         (sassHeaders opt)
     maybe (return ())
         (makeNativeImporterList >=> Lib.sass_option_set_c_importers ptr)
         (sassImporters opt)
+    where
+      fromHeader (SassHeader p f) = SassImporter p (\filename _ -> f filename)
+
 
 -- | Copies 'sassFunctions' to native object, executes action, clears leftovers
 -- (see documentation of 'makeNativeFunction') and returns action result.
