@@ -23,7 +23,7 @@ altInclContent :: String
 altInclContent = "b {\n  margin: 5px; }\n"
 
 headerFunction :: String -> IO [SassImport]
-headerFunction _ = return [makeSourceImport inclContent]
+headerFunction src = return [makeSourceImport $ src ++ "{\n  margin: 1px; }\n"]
 
 headers :: [SassHeader]
 headers = [SassHeader 1 headerFunction]
@@ -51,9 +51,18 @@ spec = do
             Right "a {\n  margin: 1px; }\n"
 
     it "should correctly inject header" $ do
-        let opts = def { sassHeaders = Just headers }
+        let opts = def { sassHeaders = Just headers, sassInputPath = Just "path" }
         compileString "a { margin : 1px; }" opts `shouldReturn`
-            Right (inclContent ++ "\na {\n  margin: 1px; }\n")
+            Right ("path {\n  margin: 1px; }\n\na {\n  margin: 1px; }\n")
+
+    it "should not apply header to imports" $ do
+        let opts = def {
+            sassHeaders = Just headers
+          , sassImporters = Just importers
+          , sassInputPath = Just "path"
+        }
+        compileString "@import '_imp';" opts `shouldReturn`
+            Right ("path {\n  margin: 1px; }\n\n" ++ inclContent)
 
     it "should call importers" $ do
         let opts = def { sassImporters = Just importers }
