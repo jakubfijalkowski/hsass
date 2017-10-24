@@ -27,11 +27,18 @@ header src = return [makeSourceImport $ "$file: " ++ src ++ ";"]
 headerSig :: SassHeader
 headerSig = SassHeader 1 header
 
+importer :: String -> String -> IO [SassImport]
+importer imp src = return
+    [makeSourceImport $ "/* imported " ++ imp ++ " into " ++ src ++ " */"]
+
+sassImporter :: Maybe [SassImporter]
+sassImporter = Just [SassImporter 1 importer]
+
 importer1 :: String -> String -> IO [SassImport]
-importer1 src _ = return [makeSourceImport $ "$file: " ++ src ++ "1;"]
+importer1 imp _ = return [makeSourceImport $ "$file: " ++ imp ++ "1;"]
 
 importer2 :: String -> String -> IO [SassImport]
-importer2 src _ = return [makeSourceImport $ "$file: " ++ src ++ "2;"]
+importer2 imp _ = return [makeSourceImport $ "$file: " ++ imp ++ "2;"]
 
 importerSigs :: [SassImporter]
 importerSigs = [SassImporter 0.5 importer1, SassImporter 1 importer2]
@@ -75,7 +82,11 @@ spec = do
             compileString "foo { prop: $file; }" opts `shouldReturn`
                 Right "foo {\n  prop: path; }\n"
 
-    describe "Importers" $
+    describe "Importers" $ do
+        it "should provide the importer with the correct arguments" $ do
+            let opts = def { sassImporters = sassImporter, sassInputPath = Just "file" }
+            compileString "@import \"relative/path\"" opts
+                `shouldReturn` Right "/* imported relative/path into file */\n"
         it "should inject import with higher priority" $ do
             let opts = def { sassImporters = Just importerSigs }
             compileString "@import \"file\";\nfoo { prop: $file; }" opts

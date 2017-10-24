@@ -141,16 +141,15 @@ import           Text.Sass.Values
 -- documentation for more information.
 
 -- $headers_and_importers
--- Importers are functions that override default behaviour of @import statements
--- For example, you may implement rewrite rules or even download stylesheets
--- from remote server.
+-- Importers are functions that override default behaviour of @@import@
+-- statements.  For example, you may implement rewrite rules or even download
+-- stylesheets from a remote server.
 --
--- Headers leverage the same infrastructure as importers - they are just used
--- not for @imports, but for every file being loaded. They allow you to inject
--- arbitrary sass source in a file.
+-- Headers allow you to insert arbitrary sass at the beginning of the file being
+-- compiled.
 --
--- Let's say that we want to inject a path to currently compiled file. We may
--- write the following header:
+-- Let's say that we want to inject a path to the currently compiled file. We
+-- may write the following header:
 --
 -- > header src = return [makeSourceImport $ "$file: " ++ src ++ ";"]
 --
@@ -158,10 +157,10 @@ import           Text.Sass.Values
 -- the current file (first argument of the function).
 -- Then, we must define header signature and override options:
 --
--- > headerSig = SassImporter 1 header
+-- > headerSig = SassHeader 1 header
 -- > opts = def { sassHeaders = Just [headerSig], sassInputPath = Just "path" }
 --
--- We set 'sassInputPath', because we will be compiling string and it won't be
+-- We set 'sassInputPath', because we will be compiling a string and it won't be
 -- set automatically.
 -- Now, executing
 --
@@ -171,15 +170,26 @@ import           Text.Sass.Values
 --
 -- > "foo { prop: path; }"
 --
--- Importers are defined and act similarly - they just take path to the file
--- being imported instead of file being processed and are injected using
--- 'sassImporters'.
+-- Importers are defined and act similarly, but they take two arguments. The
+-- first argument is the path to the file being imported, and the second
+-- argument is the path to the importing file. For example
 --
--- Additionally, importers support priorities - if two importers return source
--- for some file, the one with higher priority wins. For example
+-- > importer imp src = return
+-- >     [makeSourceImport $ "/* imported " ++ imp ++ " into " ++ src ++ " */"]
+-- > sassImporter = Just [SassImporter 1 importer]
+-- > opts = def { sassImporters = sassImporter, sassInputPath = Just "file" }
+-- > compileString "@import \"relative/path\"" opts
 --
--- > importer1 src = return [makeSourceImport $ "$file: " ++ src ++ "1;"]
--- > importer2 src = return [makeSourceImport $ "$file: " ++ src ++ "2;"]
+-- Gives
+--
+-- > "/* imported relative/path into file */"
+--
+-- The first argument to 'SassHeader' or 'SassImporter' is its priority - if two
+-- importers return source for some file, the one with higher priority wins. For
+-- example
+--
+-- > importer1 imp _ = return [makeSourceImport $ "$file: " ++ imp ++ "1;"]
+-- > importer2 imp _ = return [makeSourceImport $ "$file: " ++ imp ++ "2;"]
 -- > importerSigs = [SassImporter 0.5 importer1, SassImporter 1 importer2]
 -- > opts = def { sassImporters = Just importerSigs }
 -- > compileString "@import \"file\";\nfoo { prop: $file; }" opts
