@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.5.0] - 2017-11-01
+### Changed
+- Split `SassImporter` into `SassImporter` and `SassHeader` (thanks @h-3-0)
+
+### Added
+- `SassIporter` now takes path to the file that is being imported into (thanks
+  @h-3-0)
+
 ## [0.4.2] - 2017-08-28
 ### Added
 - Introduce `defaultSassOptions` as default options (thanks @chris-martin !)
@@ -53,3 +61,4 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 [0.4.0]: https://github.com/jakubfijalkowski/hsass/compare/v0.3.0...v0.4.0
 [0.4.1]: https://github.com/jakubfijalkowski/hsass/compare/v0.4.0...v0.4.1
 [0.4.2]: https://github.com/jakubfijalkowski/hsass/compare/v0.4.1...v0.4.2
+[0.5.0]: https://github.com/jakubfijalkowski/hsass/compare/v0.4.2...v0.5.0
