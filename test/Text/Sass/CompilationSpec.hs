@@ -13,8 +13,8 @@ import           Text.Sass.TestingUtils
 main :: IO ()
 main = hspec spec
 
-importerFunc :: String -> IO [SassImport]
-importerFunc _ = return [makeSourceImport "a { margin: 1px; }"]
+importerFunc :: String -> String -> IO [SassImport]
+importerFunc _ _ = return [makeSourceImport "a { margin: 1px; }"]
 
 importers :: [SassImporter]
 importers = [SassImporter 1 importerFunc]

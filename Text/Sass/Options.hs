@@ -51,7 +51,7 @@ data SassOptions = SassOptions {
     -- | List of user-supplied functions that provide "headers" for sass files.
     -- Header is injected at the beginning of a file which name is passed as
     -- the first argument of importer.
-  , sassHeaders           :: Maybe [SassImporter]
+  , sassHeaders           :: Maybe [SassHeader]
     -- | List of user-supplied functions that resolve @import directives.
   , sassImporters         :: Maybe [SassImporter]
 }

@@ -75,9 +75,14 @@ freeNativeFunctionList = loopCList freeNativeFunction
 
 -- | Wraps function of type 'SassImporterType'.
 wrapImporter :: SassImporterType -> Lib.SassImporterFnType
-wrapImporter fn url _ _ = peekCString url >>= fn >>= \case
-    [] -> return nullPtr
-    xs -> makeNativeImportList xs
+wrapImporter fn url _ compiler = do
+    lastImport <- Lib.sass_compiler_get_last_import compiler
+    absPath <- Lib.sass_import_get_abs_path lastImport >>= peekCString
+    url' <- peekCString url
+    importList <- fn url' absPath
+    case importList of
+        [] -> return nullPtr
+        xs -> makeNativeImportList xs
 
 -- | Converts 'SassImport' into native representation.
 makeNativeImport :: SassImport -> IO Lib.SassImportEntry

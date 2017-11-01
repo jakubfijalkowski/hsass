@@ -1,7 +1,7 @@
 module Text.Sass.FunctionsSpec where
 
 import           Test.Hspec
-import           Text.Sass
+import           Text.Sass  hiding (headerFunction)
 
 fooFunction :: SassValue -> IO SassValue
 fooFunction _ = return $ SassNumber 1 "px"
@@ -23,14 +23,14 @@ altInclContent :: String
 altInclContent = "b {\n  margin: 5px; }\n"
 
 headerFunction :: String -> IO [SassImport]
-headerFunction _ = return [makeSourceImport inclContent]
+headerFunction src = return [makeSourceImport $ src ++ "{\n  margin: 1px; }\n"]
 
-headers :: [SassImporter]
-headers = [SassImporter 1 headerFunction]
+headers :: [SassHeader]
+headers = [SassHeader 1 headerFunction]
 
-importFunction :: String -> IO [SassImport]
-importFunction "_imp" = return [makeSourceImport inclContent]
-importFunction _      = return [makeSourceImport altInclContent]
+importFunction :: String -> String -> IO [SassImport]
+importFunction "_imp" _ = return [makeSourceImport inclContent]
+importFunction _      _ = return [makeSourceImport altInclContent]
 
 importers :: [SassImporter]
 importers = [SassImporter 1 importFunction]
@@ -51,9 +51,18 @@ spec = do
             Right "a {\n  margin: 1px; }\n"
 
     it "should correctly inject header" $ do
-        let opts = def { sassHeaders = Just headers }
+        let opts = def { sassHeaders = Just headers, sassInputPath = Just "path" }
         compileString "a { margin : 1px; }" opts `shouldReturn`
-            Right (inclContent ++ "\na {\n  margin: 1px; }\n")
+            Right ("path {\n  margin: 1px; }\n\na {\n  margin: 1px; }\n")
+
+    it "should not apply header to imports" $ do
+        let opts = def {
+            sassHeaders = Just headers
+          , sassImporters = Just importers
+          , sassInputPath = Just "path"
+        }
+        compileString "@import '_imp';" opts `shouldReturn`
+            Right ("path {\n  margin: 1px; }\n\n" ++ inclContent)
 
     it "should call importers" $ do
         let opts = def { sassImporters = Just importers }
