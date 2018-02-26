@@ -2,6 +2,7 @@
 {-# LANGUAGE BangPatterns         #-}
 {-# LANGUAGE CPP                  #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE PatternGuards        #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 module Text.Sass.Compilation
   (
@@ -28,12 +29,16 @@ module Text.Sass.Compilation
   , errorColumn
   ) where
 
-import qualified Bindings.Libsass    as Lib
-import           Data.ByteString     (ByteString, packCString)
+import qualified Bindings.Libsass      as Lib
+import           Data.ByteString       (ByteString)
+import qualified Data.ByteString       as B
+import qualified Data.ByteString.Char8 as B.C8
+import           Data.List             (stripPrefix)
+import           Data.Maybe            (fromMaybe)
 #if !MIN_VERSION_base(4,8,0)
-import           Control.Applicative ((<$>))
+import           Control.Applicative   ((<$>))
 #endif
-import           Control.Monad       (forM, (>=>))
+import           Control.Monad         (forM, (>=>))
 import           Foreign
 import           Foreign.C
 import           Text.Sass.Internal
@@ -78,7 +83,7 @@ type ExtendedResultBS = IO (Either SassError (SassExtendedResult ByteString))
 -- 'SassResult').  The first provides only a compiled string, the latter one
 -- gives access to a list of included files and a source map (if available).
 class SassResult a where
-    toSassResult :: ForeignPtr Lib.SassContext -> IO a
+    toSassResult :: Bool -> ForeignPtr Lib.SassContext -> IO a
 
 instance Show SassError where
     show (SassError s _) =
@@ -92,22 +97,34 @@ instance Show (SassExtendedResult a) where
 
 -- | Only compiled code.
 instance SassResult String where
-    toSassResult ptr = withForeignPtr ptr $ \ctx -> do
+    toSassResult stripEncoding ptr = withForeignPtr ptr $ \ctx -> do
         result <- Lib.sass_context_get_output_string ctx
         !result' <- peekCString result
-        return result'
+        return $ if stripEncoding then strip result' else result'
+     where
+        strip s
+            | Just stripped <- stripPrefix "@charset \"UTF-8\";\n" s = stripped
+            | Just stripped <- stripPrefix "\65279" s = stripped
+            | otherwise = s
 
 -- | Only compiled code (UTF-8 encoding).
 instance SassResult ByteString where
-    toSassResult ptr = withForeignPtr ptr $ \ctx -> do
+    toSassResult stripEncoding ptr = withForeignPtr ptr $ \ctx -> do
         result <- Lib.sass_context_get_output_string ctx
-        !result' <- packCString result
-        return result'
+        !result' <- B.packCString result
+        return $ if stripEncoding then strip result' else result'
+      where
+        strip s
+            | Just stripped <- stripCharset s = stripped
+            | Just stripped <- stripBom s = stripped
+            | otherwise = s
+        stripCharset = B.C8.stripPrefix (B.C8.pack "@charset \"UTF-8\";\n")
+        stripBom = B.C8.stripPrefix (B.C8.pack "\239\187\191")
 
 -- | Compiled code with includes and a source map.
 instance (SassResult a) => SassResult (SassExtendedResult a) where
-    toSassResult ptr = do
-        str <- toSassResult ptr
+    toSassResult stripEncoding ptr = do
+        str <- toSassResult stripEncoding ptr
         return $ SassExtendedResult str ptr
 
 -- | Loads specified property from a context and converts it to desired type.
@@ -195,7 +212,7 @@ compileInternal str opts make compile finalizer = do
         then return $ Left $
             SassError (fromIntegral status) fptr
         else do
-            result <- toSassResult fptr
+            result <- toSassResult (sassStripEncodingInfo opts) fptr
             return $ Right result
 
 -- | Compiles a file using specified options.
