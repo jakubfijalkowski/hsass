@@ -29,16 +29,17 @@ module Text.Sass.Compilation
   , errorColumn
   ) where
 
-import qualified Bindings.Libsass      as Lib
-import           Data.ByteString       (ByteString)
-import qualified Data.ByteString       as B
-import qualified Data.ByteString.Char8 as B.C8
-import           Data.List             (stripPrefix)
-import           Data.Maybe            (fromMaybe)
+import qualified Bindings.Libsass       as Lib
+import           Data.ByteString        (ByteString)
+import qualified Data.ByteString        as B
+import qualified Data.ByteString.Char8  as B.C8
+import qualified Data.ByteString.Unsafe as B
+import           Data.List              (stripPrefix)
+import           Data.Maybe             (fromMaybe)
 #if !MIN_VERSION_base(4,8,0)
-import           Control.Applicative   ((<$>))
+import           Control.Applicative    ((<$>))
 #endif
-import           Control.Monad         (forM, (>=>))
+import           Control.Monad          (forM, (>=>))
 import           Foreign
 import           Foreign.C
 import           Text.Sass.Internal
@@ -118,8 +119,11 @@ instance SassResult ByteString where
             | Just stripped <- stripCharset s = stripped
             | Just stripped <- stripBom s = stripped
             | otherwise = s
-        stripCharset = B.C8.stripPrefix (B.C8.pack "@charset \"UTF-8\";\n")
-        stripBom = B.C8.stripPrefix (B.C8.pack "\239\187\191")
+        stripCharset = stripPrefixBS (B.C8.pack "@charset \"UTF-8\";\n")
+        stripBom = stripPrefixBS (B.C8.pack "\239\187\191")
+        stripPrefixBS bs1 bs2
+            | bs1 `B.C8.isPrefixOf` bs2 = Just (B.unsafeDrop (B.length bs1) bs2)
+            | otherwise = Nothing
 
 -- | Compiled code with includes and a source map.
 instance (SassResult a) => SassResult (SassExtendedResult a) where
