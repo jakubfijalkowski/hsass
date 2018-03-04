@@ -57,7 +57,7 @@ data SassOptions = SassOptions {
     -- | List of user-supplied functions that resolve @import directives.
   , sassImporters         :: Maybe [SassImporter]
     -- | Remove @\@charset \"UTF-8\";\\n@ or byte-order mark from CSS output,
-    -- if preset.
+    -- if present.
   , sassStripEncodingInfo :: Bool
 }
 
