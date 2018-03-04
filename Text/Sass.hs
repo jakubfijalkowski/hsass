@@ -70,6 +70,11 @@ import           Text.Sass.Values
 -- If you want access to the extended result, you have to use 'resultString',
 -- 'resultIncludes' and 'resultSourcemap' on the result to extract desirable
 -- information.
+--
+-- Note that if the compiled output contains non-ASCII characters, by default it
+-- will be prefixed with either a @\@charset@ rule indicating UTF-8 encoding or
+-- a byte-order mark (depending on the output style). If this is inconvenient,
+-- you can suppress it by enabling 'sassStripEncodingInfo'.
 
 -- $options
 -- 'SassOptions' wraps <http://libsass.org libsass> context options. It does not
