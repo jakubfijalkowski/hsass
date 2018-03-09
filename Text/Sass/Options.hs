@@ -10,7 +10,9 @@ import qualified Bindings.Libsass    as Lib
 import           Data.Default.Class
 import           Text.Sass.Functions
 
--- | Describes options used by libsass during compilation.
+-- | Describes compilation options. With the exception of
+-- 'sassStripEncodingInfo', these correspond to the compilation options of
+-- libsass.
 data SassOptions = SassOptions {
     -- | Precision of fractional numbers.
     sassPrecision         :: Int
@@ -54,6 +56,9 @@ data SassOptions = SassOptions {
   , sassHeaders           :: Maybe [SassHeader]
     -- | List of user-supplied functions that resolve @import directives.
   , sassImporters         :: Maybe [SassImporter]
+    -- | Remove @\@charset \"UTF-8\";\\n@ or byte-order mark from CSS output,
+    -- if present.
+  , sassStripEncodingInfo :: Bool
 }
 
 -- | The default 'SassOptions':
@@ -83,6 +88,7 @@ defaultSassOptions = SassOptions
   , sassFunctions         = Nothing
   , sassHeaders           = Nothing
   , sassImporters         = Nothing
+  , sassStripEncodingInfo = False
   }
 
 -- | 'def' = 'defaultSassOptions'

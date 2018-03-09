@@ -4,6 +4,7 @@ import           System.IO
 import           System.IO.Temp
 import           Test.Hspec
 import           Text.Sass
+import           Text.Sass.Compilation
 
 import           Data.ByteString.Char8  (pack)
 import           Data.Either            (isLeft, isRight)
@@ -19,11 +20,12 @@ importerFunc _ _ = return [makeSourceImport "a { margin: 1px; }"]
 importers :: [SassImporter]
 importers = [SassImporter 1 importerFunc]
 
-extendedResultSpec, compilationSpec, errorReportingSpec, spec :: Spec
+extendedResultSpec, compilationSpec, errorReportingSpec, stripEncodingInfoSpec, spec :: Spec
 spec = do
     describe "Compilation" compilationSpec
     describe "Extended compilation" extendedResultSpec
     describe "Error reporting" errorReportingSpec
+    describe "Stripping encoding information" stripEncodingInfoSpec
 
 compilationSpec = do
     it "should compile simple source" $
@@ -120,3 +122,31 @@ errorReportingSpec = do
     it "should contain file path" $ do
         (Left r) <- compileString "body { !! }" def :: StringResult
         errorFile r `returnShouldSatisfy` (not . null)
+
+stripEncodingInfoSpec = do
+    describe "from strings" $ do
+        it "should strip '@charset \"UTF-8\";\\n'" $ do
+            let opts = def { sassStripEncodingInfo = True }
+            compileString "h1:before { content: '\9660'; }" opts `shouldReturn`
+                Right "h1:before {\n  content: '\9660'; }\n"
+
+        it "should strip byte-order mark" $ do
+            let opts = def { sassOutputStyle = SassStyleCompressed
+                           , sassStripEncodingInfo = True
+                           }
+            compileString "h1:before { content: '\9660'; }" opts `shouldReturn`
+                Right "h1:before{content:'\9660'}\n"
+
+    describe "from bytestrings" $ do
+        it "should strip '@charset \"UTF-8\";\\n'" $ do
+            let opts = def { sassStripEncodingInfo = True }
+            compileString "h1:before { content: '\9660'; }" opts `shouldReturn`
+                Right (pack "h1:before {\n  content: '\226\150\188'; }\n")
+
+        it "should strip byte-order mark" $ do
+            let opts = def { sassOutputStyle = SassStyleCompressed
+                           , sassStripEncodingInfo = True
+                           }
+            compileString "h1:before { content: '\9660'; }" opts `shouldReturn`
+                Right (pack "h1:before{content:'\226\150\188'}\n")
+
