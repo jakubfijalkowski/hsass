@@ -2,9 +2,20 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.6.0] - 2018-03-24
+### Changed
+- Switched to `hLibsass` 0.1.7.0 and `libsass` 3.5.2
+
+### Added
+- `compileByteString` for `ByteString`-only compilation
+- option to strip BOM/@charset with `sassStripEncodingInfo` option (thanks @h-3-0 !)
+
+### Removed
+- `clearNativeFunction` and `clearNativeFunctionList` are not needed anymore
+
 ## [0.5.0] - 2017-11-01
 ### Changed
-- Split `SassImporter` into `SassImporter` and `SassHeader` (thanks @h-3-0)
+- Split `SassImporter` into `SassImporter` and `SassHeader` (thanks @h-3-0 !)
 
 ### Added
 - `SassIporter` now takes path to the file that is being imported into (thanks
@@ -62,3 +73,4 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 [0.4.1]: https://github.com/jakubfijalkowski/hsass/compare/v0.4.0...v0.4.1
 [0.4.2]: https://github.com/jakubfijalkowski/hsass/compare/v0.4.1...v0.4.2
 [0.5.0]: https://github.com/jakubfijalkowski/hsass/compare/v0.4.2...v0.5.0
+[0.6.0]: https://github.com/jakubfijalkowski/hsass/compare/v0.5.0...v0.6.0
