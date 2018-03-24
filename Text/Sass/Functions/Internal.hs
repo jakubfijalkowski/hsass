@@ -4,10 +4,8 @@ module Text.Sass.Functions.Internal
     -- * Functions
     wrapFunction
   , makeNativeFunction
-  , clearNativeFunction
   , freeNativeFunction
   , makeNativeFunctionList
-  , clearNativeFunctionList
   , freeNativeFunctionList
     -- * Imports and headers
   , wrapImporter
@@ -35,27 +33,17 @@ wrapFunction fn args _ _ = fromNativeValue args >>= fn >>= toNativeValue
 
 -- | Converts 'SassFunction' into native representation.
 --
--- Freeing native representation is not a pleasant process - libsass frees
--- the 'Lib.SassFunctionEntry', but does not free signature. Because of that,
--- special care must be taken in order to properly deallocate the object.
 -- If you don't want to pass the resulting object to Sass_Options,
--- call both 'clearNativeFunction' and then 'freeNativeFunction'. Otherwise,
--- you should call 'clearNativeFunction' BEFORE you deallocate context.
+-- call 'freeNativeFunction'.
 makeNativeFunction :: SassFunction -> IO Lib.SassFunctionEntry
 makeNativeFunction (SassFunction sig' fn) = do
     sig <- newCString sig'
     wrapped <- Lib.mkSassFunctionFn $ wrapFunction fn
     Lib.sass_make_function sig wrapped nullPtr
 
--- | Releases the signature of a function entry.
-clearNativeFunction :: Lib.SassFunctionEntry -> IO ()
-clearNativeFunction entry = do
-    sig <- Lib.sass_function_get_signature entry
-    free sig
-
 -- | Deallocates the object, but does not deallocate signature.
 freeNativeFunction :: Lib.SassFunctionEntry -> IO ()
-freeNativeFunction = free
+freeNativeFunction = Lib.sass_delete_function
 
 -- | Converts list of 'SassFunction's into native representation.
 --
@@ -65,13 +53,9 @@ makeNativeFunctionList :: [SassFunction] -> IO Lib.SassFunctionList
 makeNativeFunctionList =
     copyToCList Lib.sass_make_function_list makeNativeFunction pokeElemOff
 
--- | Releases signatures of entries in the list.
-clearNativeFunctionList :: Lib.SassFunctionList -> IO ()
-clearNativeFunctionList = loopCList clearNativeFunction
-
 -- | Frees the list and entries, without releasing signatures.
 freeNativeFunctionList :: Lib.SassFunctionList -> IO ()
-freeNativeFunctionList = loopCList freeNativeFunction
+freeNativeFunctionList = Lib.sass_delete_function_list
 
 -- | Wraps function of type 'SassImporterType'.
 wrapImporter :: SassImporterType -> Lib.SassImporterFnType

@@ -1,6 +1,7 @@
-resolver: nightly-2017-08-28
+resolver: nightly-2018-03-23
 packages:
 - '.'
-extra-deps: []
+extra-deps:
+- hlibsass-0.1.7.0
 flags: {}
 extra-package-dbs: []

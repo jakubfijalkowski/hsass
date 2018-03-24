@@ -34,7 +34,7 @@ toNativeValue SassNull = Lib.sass_make_null
 toNativeValue (SassWarning str) = withCString str Lib.sass_make_warning
 toNativeValue (SassError str) = withCString str Lib.sass_make_error
 toNativeValue (SassList lst sep') =
-    copyToCList (`Lib.sass_make_list` sep) toNativeValue
+    copyToCList (\size -> Lib.sass_make_list size sep False) toNativeValue
         Lib.sass_list_set_value lst
     where sep = fromIntegral $ fromEnum sep'
 

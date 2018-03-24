@@ -48,7 +48,7 @@ library
     , Text.Sass.Utils
   build-depends:
       base               >= 4.7 && < 5
-    , hlibsass           >= 0.1.5.2
+    , hlibsass           >= 0.1.7.0
     , bytestring         >= 0.10.0
     , data-default-class
     , filepath           >= 1.0

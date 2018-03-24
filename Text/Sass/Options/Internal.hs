@@ -69,5 +69,6 @@ withFunctions opt ptr action =
             nativeFnList <- makeNativeFunctionList lst
             Lib.sass_option_set_c_functions ptr nativeFnList
             !result <- action
-            clearNativeFunctionList nativeFnList
+            Lib.sass_option_set_c_functions ptr nullPtr
+            freeNativeFunctionList nativeFnList
             return result
