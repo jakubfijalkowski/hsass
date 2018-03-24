@@ -9,6 +9,7 @@ module Text.Sass.Compilation
     -- * Compilation
     compileFile
   , compileString
+  , compileByteString
     -- * Results
   , SassExtendedResult
   , StringResult
@@ -29,20 +30,21 @@ module Text.Sass.Compilation
   , errorColumn
   ) where
 
-import qualified Bindings.Libsass       as Lib
-import           Data.ByteString        (ByteString)
-import qualified Data.ByteString        as B
-import qualified Data.ByteString.Char8  as B.C8
-import qualified Data.ByteString.Unsafe as B
-import           Data.List              (stripPrefix)
-import           Data.Maybe             (fromMaybe)
+import qualified Bindings.Libsass               as Lib
+import           Data.ByteString                (ByteString)
+import qualified Data.ByteString                as B
+import qualified Data.ByteString.Char8          as B.C8
+import qualified Data.ByteString.Unsafe         as B
+import           Data.List                      (stripPrefix)
+import           Data.Maybe                     (fromMaybe)
 #if !MIN_VERSION_base(4,8,0)
-import           Control.Applicative    ((<$>))
+import           Control.Applicative            ((<$>))
 #endif
-import           Control.Monad          (forM, (>=>))
+import           Control.Monad                  (forM, (>=>))
 import           Foreign
 import           Foreign.C
-import           Text.Sass.Internal
+import qualified Text.Sass.Compilation.Internal as CI
+import           Text.Sass.Internal             hiding (newCString)
 import           Text.Sass.Options
 
 -- | Represents compilation error.
@@ -237,6 +239,18 @@ compileString :: SassResult a
               -> IO (Either SassError a) -- ^ Error or output string.
 compileString str opts = do
     cdata <- newCString str
+    compileInternal cdata opts
+        Lib.sass_make_data_context
+        Lib.sass_compile_data_context
+        Lib.p_sass_delete_data_context
+
+-- | Compiles raw Sass content using specified options.
+compileByteString :: SassResult a
+                  => ByteString -- ^ String to compile.
+                  -> SassOptions -- ^ Compilation options.
+                  -> IO (Either SassError a) -- ^ Error or output string.
+compileByteString str opts = do
+    cdata <- CI.newCString str
     compileInternal cdata opts
         Lib.sass_make_data_context
         Lib.sass_compile_data_context

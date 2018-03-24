@@ -4,7 +4,6 @@ import           System.IO
 import           System.IO.Temp
 import           Test.Hspec
 import           Text.Sass
-import           Text.Sass.Compilation
 
 import           Data.ByteString.Char8  (pack)
 import           Data.Either            (isLeft, isRight)
@@ -47,12 +46,16 @@ compilationSpec = do
             hClose h
             compileFile p def `shouldReturn` Right "foo {\n  margin: 42px; }\n"
 
-    it "compile file should respect options" $ do
+    it "should respect options when compiling file" $ do
         let opts = def { sassOutputStyle = SassStyleCompressed }
         withSystemTempFile "styles.sass" $ \p h -> do
             hPutStr h "foo { margin: 21px * 2; }"
             hClose h
             compileFile p opts `shouldReturn` Right "foo{margin:42px}\n"
+
+    it "should compile bytestring correctly" $
+        compileByteString (pack "foo { margin: 21px * 2; }") def `shouldReturn`
+            Right (pack "foo {\n  margin: 42px; }\n")
 
 extendedResultSpec = do
     it "should compile simple source" $ do
