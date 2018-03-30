@@ -14,9 +14,9 @@ import           Control.Applicative          ((<$>))
 #endif
 import           Control.Monad                ((>=>))
 import           Foreign
-import           Foreign.C
 import           Text.Sass.Functions
 import           Text.Sass.Functions.Internal
+import           Text.Sass.Marshal.Internal
 import           Text.Sass.Options
 import           Text.Sass.Utils
 
@@ -31,19 +31,19 @@ copyOptionsToNative opt ptr = do
     Lib.sass_option_set_source_map_contents ptr (sassSourceMapContents opt)
     Lib.sass_option_set_omit_source_map_url ptr (sassOmitSourceMapUrl opt)
     Lib.sass_option_set_is_indented_syntax_src ptr (sassIsIndentedSyntax opt)
-    withCString (sassIndent opt) (Lib.sass_option_set_indent ptr)
-    withCString (sassLinefeed opt) (Lib.sass_option_set_linefeed ptr)
-    withOptionalCString (sassInputPath opt)
+    withUTF8CString (sassIndent opt) (Lib.sass_option_set_indent ptr)
+    withUTF8CString (sassLinefeed opt) (Lib.sass_option_set_linefeed ptr)
+    withOptionalUTF8CString (sassInputPath opt)
         (Lib.sass_option_set_input_path ptr)
-    withOptionalCString (sassOutputPath opt)
+    withOptionalUTF8CString (sassOutputPath opt)
         (Lib.sass_option_set_output_path ptr)
-    withOptionalCString (concatPaths <$> sassPluginPaths opt)
+    withOptionalUTF8CString (concatPaths <$> sassPluginPaths opt)
         (Lib.sass_option_set_plugin_path ptr)
-    withOptionalCString (concatPaths <$> sassIncludePaths opt)
+    withOptionalUTF8CString (concatPaths <$> sassIncludePaths opt)
         (Lib.sass_option_set_include_path ptr)
-    withOptionalCString (sassSourceMapFile opt)
+    withOptionalUTF8CString (sassSourceMapFile opt)
         (Lib.sass_option_set_source_map_file ptr)
-    withOptionalCString (sassSourceMapRoot opt)
+    withOptionalUTF8CString (sassSourceMapRoot opt)
         (Lib.sass_option_set_source_map_root ptr)
     maybe (return ())
         (makeNativeImporterList . fmap fromHeader

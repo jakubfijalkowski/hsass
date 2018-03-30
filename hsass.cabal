@@ -1,5 +1,5 @@
 name:                hsass
-version:             0.6.0
+version:             0.7.0
 license:             MIT
 license-file:        LICENSE
 author:              Jakub Fijałkowski <fiolek94@gmail.com>
@@ -28,6 +28,9 @@ description:
 
 extra-source-files:
   CHANGELOG.md
+  test/data/imports.scss
+  test/data/pl.scss
+  test/data/pl-zażółcić.scss
 
 source-repository head
   type:                git
@@ -41,8 +44,8 @@ library
     , Text.Sass.Options
     , Text.Sass.Values
     , Text.Sass.Internal
-    , Text.Sass.Compilation.Internal
     , Text.Sass.Functions.Internal
+    , Text.Sass.Marshal.Internal
     , Text.Sass.Options.Internal
     , Text.Sass.Values.Internal
     , Text.Sass.Values.Utils
@@ -69,6 +72,7 @@ test-suite test
     , Text.Sass.TestingUtils
     , Text.Sass.TutorialSpec
     , Text.Sass.ValuesSpec
+    , Text.Sass.EncodingSpec
   type:                exitcode-stdio-1.0
   ghc-options:         -Wall
   build-depends:

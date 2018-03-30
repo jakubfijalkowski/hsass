@@ -4,7 +4,7 @@
 module Text.Sass.Utils
   (
     -- * Interoperation with C API
-    withOptionalCString
+    withOptionalUTF8CString
   , listEntryNotNull
   , loopCList
   , copyToCList
@@ -23,6 +23,8 @@ import           Foreign
 import           Foreign.C
 import           System.FilePath                  (searchPathSeparator)
 
+import           Text.Sass.Marshal.Internal
+
 -- Fix for transformers-0.3.0.0 (used by lts-2.17 in stack).
 #if !MIN_VERSION_transformers(0,4,0)
 modify' :: (Monad m) => (s -> s) -> StateT s m ()
@@ -33,9 +35,9 @@ modify' f = do
 
 -- | 'withOptionalCString' @str action@, if @str@ is 'Nothing', @action@ is not
 -- invoked, otherwise behaves like 'withCString'.
-withOptionalCString :: Maybe String -> (CString -> IO ()) -> IO ()
-withOptionalCString (Just str) action = withCString str action
-withOptionalCString Nothing _ = return ()
+withOptionalUTF8CString :: Maybe String -> (CString -> IO ()) -> IO ()
+withOptionalUTF8CString (Just str) action = withUTF8CString str action
+withOptionalUTF8CString Nothing _         = return ()
 
 -- | Checks if the pointer in state points to non-null location.
 listEntryNotNull :: (Monad m, MonadIO m) => StateT (Ptr (Ptr a)) m Bool

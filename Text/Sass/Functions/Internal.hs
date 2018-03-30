@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
 module Text.Sass.Functions.Internal
   (
     -- * Functions
@@ -19,10 +18,10 @@ module Text.Sass.Functions.Internal
   , freeNativeImporterList
   ) where
 
-import qualified Bindings.Libsass          as Lib
+import qualified Bindings.Libsass           as Lib
 import           Foreign
-import           Foreign.C
 import           Text.Sass.Functions
+import           Text.Sass.Marshal.Internal
 import           Text.Sass.Utils
 import           Text.Sass.Values.Internal
 
@@ -37,7 +36,7 @@ wrapFunction fn args _ _ = fromNativeValue args >>= fn >>= toNativeValue
 -- call 'freeNativeFunction'.
 makeNativeFunction :: SassFunction -> IO Lib.SassFunctionEntry
 makeNativeFunction (SassFunction sig' fn) = do
-    sig <- newCString sig'
+    sig <- newUTF8CString sig'
     wrapped <- Lib.mkSassFunctionFn $ wrapFunction fn
     Lib.sass_make_function sig wrapped nullPtr
 
@@ -61,8 +60,8 @@ freeNativeFunctionList = Lib.sass_delete_function_list
 wrapImporter :: SassImporterType -> Lib.SassImporterFnType
 wrapImporter fn url _ compiler = do
     lastImport <- Lib.sass_compiler_get_last_import compiler
-    absPath <- Lib.sass_import_get_abs_path lastImport >>= peekCString
-    url' <- peekCString url
+    absPath <- Lib.sass_import_get_abs_path lastImport >>= peekUTF8CString
+    url' <- peekUTF8CString url
     importList <- fn url' absPath
     case importList of
         [] -> return nullPtr
@@ -71,10 +70,10 @@ wrapImporter fn url _ compiler = do
 -- | Converts 'SassImport' into native representation.
 makeNativeImport :: SassImport -> IO Lib.SassImportEntry
 makeNativeImport el = do
-    path <- maybeNew newCString $ importPath el
-    base <- maybeNew newCString $ importPath el
-    source <- maybeNew newCString $ importSource el
-    srcmap <- maybeNew newCString $ importSourceMap el
+    path <- maybeNew newUTF8CString $ importPath el
+    base <- maybeNew newUTF8CString $ importPath el
+    source <- maybeNew newUTF8CString $ importSource el
+    srcmap <- maybeNew newUTF8CString $ importSourceMap el
     Lib.sass_make_import path base source srcmap
 
 -- | Frees native representation of 'SassImport'.
