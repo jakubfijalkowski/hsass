@@ -34,4 +34,4 @@ install:
   - stack ghc -- --version
 
 script:
-  - stack --no-terminal test
+  - LC_CTYPE=posix stack --no-terminal test
