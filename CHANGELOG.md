@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.7.0] - 2018-04-02
+### Changed
+- This library uses UTF-8 to encode/decode all `CString`s (paths included!)
+
 ## [0.6.0] - 2018-03-24
 ### Changed
 - Switched to `hLibsass` 0.1.7.0 and `libsass` 3.5.2
@@ -74,3 +78,4 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 [0.4.2]: https://github.com/jakubfijalkowski/hsass/compare/v0.4.1...v0.4.2
 [0.5.0]: https://github.com/jakubfijalkowski/hsass/compare/v0.4.2...v0.5.0
 [0.6.0]: https://github.com/jakubfijalkowski/hsass/compare/v0.5.0...v0.6.0
+[0.7.0]: https://github.com/jakubfijalkowski/hsass/compare/v0.6.0...v0.7.0
