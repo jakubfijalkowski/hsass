@@ -32,14 +32,18 @@ data SassFunction = SassFunction {
 -- | Represents a sass import - a sass content with additional metadata.
 --
 -- Even though this ADT has four fields, you may just provide either
--- 'importPath' and 'importBase' and leave loading to the library, or provide
--- 'importSource' and do not provide 'importPath' nor 'importBase'.
+-- 'importPath' and 'importAbsolutePath' and leave loading to the library, or
+-- provide 'importSource' and do not provide 'importAbsolutePath'.
 -- Nevertheless, you are free to provide all of the fields.
 data SassImport = SassImport {
-    importPath      :: Maybe FilePath, -- ^ Path to the import, relative to base.
-    importBase      :: Maybe FilePath, -- ^ Base path.
-    importSource    :: Maybe String,   -- ^ Import's source.
-    importSourceMap :: Maybe String    -- ^ Source map of the import.
+    -- | Path to the import, as requested by the import statement.
+    importPath         :: Maybe FilePath 
+    -- | Absolute path to the file.
+  , importAbsolutePath :: Maybe FilePath 
+    -- | Import's source.
+  , importSource       :: Maybe String
+    -- | Source map of the import.
+  , importSourceMap    :: Maybe String
 }
 
 -- | Type of the function that acts like an importer.
@@ -47,11 +51,11 @@ data SassImport = SassImport {
 -- You may return the empty list in order to tell libsass to handle the import by
 -- itself.
 type SassImporterType =
-       String
-       -- ^ Path to the import that needs to be loaded.
-    -> String
-       -- ^ Absolute path to the importing file.
-    -> IO [SassImport] -- ^ Imports.
+     String
+     -- ^ Path to the import that needs to be loaded.
+  -> String
+     -- ^ Absolute path to the importing file.
+  -> IO [SassImport] -- ^ Imports.
 
 -- | Description of the importer.
 data SassImporter = SassImporter {
@@ -75,7 +79,7 @@ data SassHeader = SassHeader {
 makeSourceImport :: String -> SassImport
 makeSourceImport s = SassImport Nothing Nothing (Just s) Nothing
 
--- | 'makePathImport' @p b@ is equivalent to 'SassImport'
--- @(Just p) (Just b) Nothing Nothing@.
-makePathImport :: String -> String -> SassImport
-makePathImport p b = SassImport (Just p) (Just b) Nothing Nothing
+-- | 'makePathImport' @p@ is equivalent to 'SassImport'
+-- @(Just p) (Just p) Nothing Nothing@.
+makePathImport :: String -> SassImport
+makePathImport p = SassImport (Just p) (Just p) Nothing Nothing

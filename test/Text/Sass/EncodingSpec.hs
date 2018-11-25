@@ -50,7 +50,7 @@ nonUTFNameSig = SassFunction "zażółcić()" returnFunc
 
 importFunction :: FilePath -> String -> String -> IO [SassImport]
 importFunction _ "src"  _ = return [makeSourceImport testInput]
-importFunction p "path" _ = return [makePathImport p "."]
+importFunction p "path" _ = return [makePathImport p]
 importFunction _ _ _      = fail "Unknown import"
 
 importers :: FilePath -> [SassImporter]

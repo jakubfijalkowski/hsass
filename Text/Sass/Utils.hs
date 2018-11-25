@@ -33,7 +33,7 @@ modify' f = do
     put $! f s
 #endif
 
--- | 'withOptionalCString' @str action@, if @str@ is 'Nothing', @action@ is not
+-- | 'withOptionalCString' @str action@, if @str@ is @Nothing@, @action@ is not
 -- invoked, otherwise behaves like 'withCString'.
 withOptionalUTF8CString :: Maybe String -> (CString -> IO ()) -> IO ()
 withOptionalUTF8CString (Just str) action = withUTF8CString str action

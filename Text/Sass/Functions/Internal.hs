@@ -69,12 +69,12 @@ wrapImporter fn url _ compiler = do
 
 -- | Converts 'SassImport' into native representation.
 makeNativeImport :: SassImport -> IO Lib.SassImportEntry
-makeNativeImport el = do
-    path <- maybeNew newUTF8CString $ importPath el
-    base <- maybeNew newUTF8CString $ importPath el
-    source <- maybeNew newUTF8CString $ importSource el
-    srcmap <- maybeNew newUTF8CString $ importSourceMap el
-    Lib.sass_make_import path base source srcmap
+makeNativeImport el =
+    maybeWith withUTF8CString (importPath el) $ \path ->
+        maybeWith withUTF8CString (importAbsolutePath el) $ \absPath -> do
+            source <- maybeNew newUTF8CString $ importSource el
+            srcmap <- maybeNew newUTF8CString $ importSourceMap el
+            Lib.sass_make_import path absPath source srcmap
 
 -- | Frees native representation of 'SassImport'.
 freeNativeImport :: Lib.SassImportEntry -> IO ()
