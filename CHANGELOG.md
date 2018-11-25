@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.8.0] - 2018-11-25
+### Changed
+- Fix invalid usage of `sass_make_import` and fix `SassImport`. This is a
+  breaking change. Fixes [#12](https://github.com/jakubfijalkowski/hsass/issues/12).
+
 ## [0.7.0] - 2018-04-02
 ### Changed
 - This library uses UTF-8 to encode/decode all `CString`s (paths included!)
@@ -79,3 +84,4 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 [0.5.0]: https://github.com/jakubfijalkowski/hsass/compare/v0.4.2...v0.5.0
 [0.6.0]: https://github.com/jakubfijalkowski/hsass/compare/v0.5.0...v0.6.0
 [0.7.0]: https://github.com/jakubfijalkowski/hsass/compare/v0.6.0...v0.7.0
+[0.8.0]: https://github.com/jakubfijalkowski/hsass/compare/v0.7.0...v0.8.0
