@@ -1,7 +1,7 @@
-resolver: lts-6.35
+resolver: lts-15.3
 packages:
 - '.'
 extra-deps:
-- hlibsass-0.1.8.0
+- hlibsass-0.1.9.0
 flags: {}
 extra-package-dbs: []
